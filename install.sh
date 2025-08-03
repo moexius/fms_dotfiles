@@ -25,7 +25,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration
-REPO_URL="https://github.com/yourusername/dotfiles.git"
+REPO_URL="https://github.com/moexius/fms_dotfiles.git"
 DOTFILES_DIR="$HOME/.dotfiles"
 
 # Detect OS and package manager
