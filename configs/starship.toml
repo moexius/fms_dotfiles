@@ -1,0 +1,219 @@
+# ~/.config/starship.toml
+# Starship Configuration - Universal Dotfiles
+
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+# Replace the '❯' symbol in the prompt with '➜'
+[character]
+success_symbol = '[➜](bold green)'
+error_symbol = '[➜](bold red)'
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+# Configure the format of the prompt
+format = """
+[╭─](bold blue)$os$username$hostname$directory$git_branch$git_status$python$nodejs$rust$golang$java$docker_context
+[╰─](bold blue)$character"""
+
+# Right side of the prompt
+right_format = """$time$battery"""
+
+# OS module
+[os]
+format = "[$symbol](bold white) "
+disabled = false
+
+[os.symbols]
+Alpaquita = "🔔 "
+Alpine = "🏔️ "
+Amazon = "🙂 "
+Android = "🤖 "
+Arch = "🎗️ "
+Artix = "🎗️ "
+CentOS = "💠 "
+Debian = "🌀 "
+DragonFly = "🐉 "
+Emscripten = "🔗 "
+EndeavourOS = "🚀 "
+Fedora = "🎩 "
+FreeBSD = "😈 "
+Garuda = "🦅 "
+Gentoo = "🗜️ "
+HardenedBSD = "🛡️ "
+Illumos = "🐦 "
+Linux = "🐧 "
+Mabox = "📦 "
+Macos = "🍎 "
+Manjaro = "🥭 "
+Mariner = "🌊 "
+MidnightBSD = "🌘 "
+Mint = "🌿 "
+NetBSD = "🚩 "
+NixOS = "❄️ "
+OpenBSD = "🐡 "
+OpenCloudOS = "☁️ "
+openEuler = "🦉 "
+openSUSE = "🦎 "
+OracleLinux = "🦴 "
+Pop = "🍭 "
+Raspbian = "🍓 "
+Redhat = "🎩 "
+RedHatEnterprise = "🎩 "
+Redox = "🧪 "
+Solus = "⛵ "
+SUSE = "🦎 "
+Ubuntu = "🎯 "
+Unknown = "❓ "
+Windows = "🪟 "
+
+# Username
+[username]
+style_user = "bold yellow"
+style_root = "bold red"
+format = "[$user]($style) "
+disabled = false
+show_always = true
+
+# Hostname
+[hostname]
+ssh_only = false
+format = "on [$hostname](bold green) "
+trim_at = "."
+disabled = false
+
+# Directory
+[directory]
+style = "bold cyan"
+format = "in [$path]($style)[$read_only]($read_only_style) "
+truncation_length = 3
+truncation_symbol = "…/"
+read_only = "🔒"
+
+[directory.substitutions]
+"Documents" = "📄 "
+"Downloads" = "⬇️ "
+"Music" = "🎵 "
+"Pictures" = "📷 "
+"Developer" = "💻 "
+
+# Git Branch
+[git_branch]
+symbol = "🌱 "
+format = "on [$symbol$branch]($style) "
+style = "bold purple"
+
+# Git Status
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "bold red"
+conflicted = "⚡"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = "✓"
+untracked = "?${count}"
+stashed = "📦"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+# Time
+[time]
+disabled = false
+format = '🕐 [$time]($style) '
+time_format = "%R"
+style = "bold yellow"
+
+# Battery
+[battery]
+full_symbol = "🔋"
+charging_symbol = "🔌"
+discharging_symbol = "⚡"
+
+[[battery.display]]
+threshold = 30
+style = "bold red"
+
+[[battery.display]]
+threshold = 60
+style = "bold yellow"
+
+[[battery.display]]
+threshold = 100
+style = "bold green"
+
+# Programming Languages
+[python]
+symbol = "🐍 "
+format = 'via [${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+
+[nodejs]
+symbol = "⬢ "
+format = 'via [$symbol($version )]($style)'
+
+[rust]
+symbol = "🦀 "
+format = 'via [$symbol($version )]($style)'
+
+[golang]
+symbol = "🐹 "
+format = 'via [$symbol($version )]($style)'
+
+[java]
+symbol = "☕ "
+format = 'via [$symbol($version )]($style)'
+
+# Docker
+[docker_context]
+symbol = "🐳 "
+format = 'via [$symbol$context]($style) '
+
+# AWS
+[aws]
+symbol = "☁️ "
+format = 'on [$symbol($profile )(\($region\) )(\[$duration\] )]($style)'
+
+# Kubernetes
+[kubernetes]
+format = 'on [⛵ ($user on )($cluster in )$context \($namespace\)](dimmed green) '
+disabled = false
+
+# Memory usage
+[memory_usage]
+disabled = false
+threshold = 70
+symbol = "🐏 "
+format = "via $symbol[${ram}( | ${swap})]($style) "
+
+# Command duration
+[cmd_duration]
+min_time = 2_000
+format = "took [$duration](bold yellow) "
+
+# Jobs
+[jobs]
+symbol = "⚙️ "
+format = "[$symbol$number]($style) "
+
+# Status
+[status]
+style = "bg:blue"
+symbol = "💥 "
+format = '[\[$symbol$common_meaning$signal_name$maybe_int\]]($style) '
+map_symbol = true
+disabled = false
+
+# Shell
+[shell]
+fish_indicator = "🐠 "
+powershell_indicator = "🔷 "
+bash_indicator = "🐚 "
+zsh_indicator = "🦓 "
+disabled = false

@@ -1,0 +1,507 @@
+#!/usr/bin/env zsh
+# ============================================================================
+# ZSH Configuration File - Universal Dotfiles
+# ============================================================================
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+export FUNCNEST=1000000
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"  # For Rust tools
+
+# macOS specific paths
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+    export PATH="$PATH:/Users/$USER/.lmstudio/bin"
+fi
+
+export EDITOR="nvim"
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+
+# ============================================================================
+# ZSH OPTIONS
+# ============================================================================
+setopt HIST_IGNORE_DUPS        # Don't record duplicate entries
+setopt HIST_IGNORE_SPACE       # Don't record entries starting with space
+setopt SHARE_HISTORY           # Share history between sessions
+setopt APPEND_HISTORY          # Append to history file
+setopt INC_APPEND_HISTORY      # Write to history file immediately
+setopt HIST_REDUCE_BLANKS      # Remove superfluous blanks
+setopt HIST_VERIFY             # Show command with history expansion before running
+setopt AUTO_CD                 # cd by typing directory name if it's not a command
+setopt CORRECT                 # Auto correct mistakes
+setopt NO_CASE_GLOB           # Case insensitive globbing
+setopt NUMERIC_GLOB_SORT      # Sort filenames numerically when it makes sense
+
+# History settings
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+
+# ============================================================================
+# ENVIRONMENT DETECTION
+# ============================================================================
+# Detect environment type
+if [[ -f /.dockerenv ]] || [[ -n "${container}" ]]; then
+    ENVIRONMENT="container"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    ENVIRONMENT="macos"
+else
+    ENVIRONMENT="linux"
+fi
+
+# ============================================================================
+# ZINIT PLUGIN MANAGER
+# ============================================================================
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+# Install Zinit if not present
+if [[ ! -f $ZINIT_HOME/zinit.zsh ]]; then
+    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$(dirname $ZINIT_HOME)" && command chmod g-rwX "$(dirname $ZINIT_HOME)"
+    command git clone https://github.com/zdharma-continuum/zinit "$ZINIT_HOME" && \
+        print -P "%F{33} %F{34}Installation successful.%f%b" || \
+        print -P "%F{160} The clone has failed.%f%b"
+fi
+
+source "$ZINIT_HOME/zinit.zsh"
+
+# Load plugins with Zinit
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-history-substring-search
+zinit light marlonrichert/zsh-autocomplete
+zinit light zsh-users/zsh-completions
+
+# Oh My Zsh plugins via Zinit
+zinit snippet OMZP::git
+zinit snippet OMZP::colored-man-pages
+zinit snippet OMZP::command-not-found
+
+# ============================================================================
+# STARSHIP PROMPT CONFIGURATION
+# ============================================================================
+# Initialize Starship prompt
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+    export STARSHIP_CONFIG=~/.config/starship.toml
+else
+    # Fallback prompt with environment indicator
+    case $ENVIRONMENT in
+        "container")
+            PROMPT='📦 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            ;;
+        "macos")
+            PROMPT='🍎 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            ;;
+        *)
+            PROMPT='🐧 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            ;;
+    esac
+    echo "⚠️  Starship not found. Install with the dotfiles installer."
+fi
+
+# ============================================================================
+# FZF CONFIGURATION
+# ============================================================================
+# Enhanced FZF setup with better colors and options
+export FZF_DEFAULT_OPTS="
+    --height 40% 
+    --reverse 
+    --border 
+    --preview-window=right:60%:wrap
+    --bind='ctrl-u:preview-page-up,ctrl-d:preview-page-down,ctrl-f:preview-page-down,ctrl-b:preview-page-up'
+    --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796
+    --color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6
+    --color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796"
+
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git --exclude node_modules --exclude .DS_Store'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git --exclude node_modules --exclude .DS_Store'
+
+# Lazy load FZF for better startup performance
+fzf_init() {
+    if command -v fzf >/dev/null 2>&1; then
+        eval "$(fzf --zsh)"
+        [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+    fi
+}
+
+# Initialize FZF
+fzf_init
+
+# ============================================================================
+# TOOL INITIALIZATION
+# ============================================================================
+# Lazy load zoxide for better performance
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init zsh)"
+fi
+
+# iTerm2 shell integration (macOS only)
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+fi
+
+# ============================================================================
+# UNIVERSAL ALIASES - SYSTEM & NAVIGATION
+# ============================================================================
+# Enhanced navigation
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias ~="cd ~"
+alias h="cd ~"
+alias c="clear"
+
+# Better ls with lsd (with fallback)
+if command -v lsd >/dev/null 2>&1; then
+    alias ls="lsd"
+    alias l="lsd -la"
+    alias ll="lsd -l"
+    alias la="lsd -la"
+    alias lt="lsd --tree"
+else
+    if [[ "$ENVIRONMENT" == "macos" ]]; then
+        alias ls="ls -G"
+        alias l="ls -la -G"
+        alias ll="ls -l -G"
+        alias la="ls -la -G"
+    else
+        alias ls="ls --color=auto"
+        alias l="ls -la --color=auto"
+        alias ll="ls -l --color=auto"
+        alias la="ls -la --color=auto"
+    fi
+fi
+
+# System monitoring
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    alias cpu="top -o cpu"
+    alias mem="top -o mem"
+    alias ports="lsof -i -P -n | grep LISTEN"
+else
+    alias cpu="top -o %CPU"
+    alias mem="top -o %MEM"
+    alias ports="ss -tuln"
+fi
+
+alias df="df -h"
+alias du="du -h"
+
+# Network utilities
+alias myip="curl -s https://ipinfo.io/ip"
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    alias localip="ipconfig getifaddr en0"
+    alias rwlan="networksetup -setairportpower en0 off && networksetup -setairportpower en0 on"
+else
+    alias localip="hostname -I | awk '{print \$1}'"
+fi
+alias ping="ping -c 5"
+
+# ============================================================================
+# PACKAGE MANAGER ALIASES
+# ============================================================================
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    # Homebrew aliases
+    alias bo="brew outdated && echo '\nRun bg to upgrade all packages'"
+    alias bu="brew update"
+    alias bg="brew upgrade"
+    alias bi="brew install"
+    alias bs="brew search"
+    alias bl="brew list"
+    alias bc="brew cleanup"
+    alias buc="brew update && brew cleanup"
+    alias binfo="brew info"
+    alias bdeps="brew deps --tree"
+else
+    # Linux package manager aliases (apt)
+    if command -v apt >/dev/null 2>&1; then
+        alias update="sudo apt update"
+        alias upgrade="sudo apt upgrade"
+        alias install="sudo apt install"
+        alias search="apt search"
+        alias show="apt show"
+        alias remove="sudo apt remove"
+        alias autoremove="sudo apt autoremove"
+    fi
+fi
+
+# ============================================================================
+# DEVELOPMENT TOOLS ALIASES
+# ============================================================================
+# Tools with fallbacks
+if command -v bat >/dev/null 2>&1; then
+    alias b="bat"
+elif command -v batcat >/dev/null 2>&1; then
+    alias b="batcat"
+else
+    alias b="cat"
+fi
+
+alias t="tldr"
+alias f="fzf"
+alias g="git"
+alias gs="git status"
+alias ga="git add"
+alias gc="git commit"
+alias gp="git push"
+alias gl="git log --oneline"
+alias gd="git diff"
+alias gb="git branch"
+alias gco="git checkout"
+
+# Quick edits
+alias zshrc="$EDITOR ~/.zshrc"
+alias starshipconfig="$EDITOR ~/.config/starship.toml"
+alias starship-config="$EDITOR ~/.config/starship.toml"
+
+# macOS specific aliases
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    alias hosts="sudo $EDITOR /etc/hosts"
+    alias vimrc="$EDITOR ~/.vimrc"
+    
+    # GlobalProtect VPN
+    alias startgp="launchctl load /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*"
+    alias stopgp="launchctl unload /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*"
+    
+    # Tailscale
+    alias ts="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+fi
+
+# Reload zsh config
+alias sa='source ~/.zshrc && echo "🚀 ZSH configuration reloaded successfully!"'
+
+# ============================================================================
+# UNIVERSAL FUNCTIONS
+# ============================================================================
+
+# Create directory and navigate to it
+function mkcd() {
+    if [ $# -ne 1 ]; then
+        echo "Usage: mkcd <directory_name>"
+        return 1
+    fi
+    mkdir -p "$1" && cd "$1"
+}
+
+# Quick weather check
+function weather() {
+    local city="${1:-Madrid}"
+    curl -s "wttr.in/${city}?format=3"
+}
+
+# Enhanced system information with environment detection
+function sysinfo() {
+    local icon
+    case $ENVIRONMENT in
+        "container") icon="📦" ;;
+        "macos") icon="🍎" ;;
+        *) icon="🐧" ;;
+    esac
+    
+    echo "$icon System Information ($ENVIRONMENT)"
+    echo "================================"
+    echo "OS: $(uname -s) $(uname -r)"
+    echo "Architecture: $(uname -m)"
+    echo "Hostname: $(hostname)"
+    
+    if [[ "$ENVIRONMENT" == "macos" ]]; then
+        echo "macOS Version: $(sw_vers -productVersion)"
+        echo "Uptime: $(uptime | awk '{print $3,$4}' | sed 's/,//')"
+        echo "Load Average: $(uptime | awk -F'load average:' '{print $2}')"
+        echo "Memory Usage:"
+        vm_stat | head -4
+        if command -v brew >/dev/null 2>&1; then
+            echo "Homebrew Packages: $(brew list --formula | wc -l | xargs) formulas, $(brew list --cask | wc -l | xargs) casks"
+        fi
+    else
+        echo "Uptime: $(uptime -p 2>/dev/null || uptime)"
+        echo "Load: $(uptime | awk -F'load average:' '{print $2}')"
+        echo "Memory:"
+        free -h 2>/dev/null || echo "Memory info not available"
+    fi
+    
+    echo "Disk Usage:"
+    df -h | head -5
+    
+    echo "Shell Tools:"
+    echo "  ZSH: $(zsh --version 2>/dev/null || echo 'Not available')"
+    echo "  Starship: $(starship --version 2>/dev/null | head -1 || echo 'Not available')"
+    echo "  fzf: $(fzf --version 2>/dev/null || echo 'Not available')"
+    echo "  zoxide: $(zoxide --version 2>/dev/null || echo 'Not available')"
+    echo "  lsd: $(lsd --version 2>/dev/null || echo 'Not available')"
+    echo "  bat: $(bat --version 2>/dev/null | head -1 || echo 'Not available')"
+}
+
+# Find and kill process by name with fzf
+function killp() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: killp <process_name_pattern>"
+        return 1
+    fi
+    
+    local pid
+    pid=$(ps aux | grep -i "$1" | grep -v grep | 
+          fzf --prompt="Select process to kill: " \
+              --preview="echo {}" \
+              --preview-window=up:3:wrap | 
+          awk '{print $2}')
+    
+    if [ -n "$pid" ]; then
+        echo "Killing process $pid..."
+        kill -9 "$pid" && echo "Process killed successfully" || echo "Failed to kill process"
+    fi
+}
+
+# Extract various archive formats
+function extract() {
+    if [ $# -ne 1 ]; then
+        echo "Usage: extract <archive_file>"
+        return 1
+    fi
+    
+    if [ -f "$1" ]; then
+        case "$1" in
+            *.tar.bz2)   tar xjf "$1"     ;;
+            *.tar.gz)    tar xzf "$1"     ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar x "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xf "$1"      ;;
+            *.tbz2)      tar xjf "$1"     ;;
+            *.tgz)       tar xzf "$1"     ;;
+            *.zip)       unzip "$1"       ;;
+            *.Z)         uncompress "$1"  ;;
+            *.7z)        7z x "$1"        ;;
+            *.xz)        unxz "$1"        ;;
+            *.lzma)      unlzma "$1"      ;;
+            *)           echo "Error: '$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "Error: '$1' is not a valid file"
+        return 1
+    fi
+}
+
+# Find files by name with fzf
+function ff() {
+    local file
+    file=$(find . -type f 2>/dev/null | fzf --prompt="Find file: " --preview="head -20 {}")
+    [ -n "$file" ] && echo "$file"
+}
+
+# Find directories with fzf
+function fd_dir() {
+    local dir
+    dir=$(find . -type d 2>/dev/null | fzf --prompt="Find directory: ")
+    [ -n "$dir" ] && cd "$dir"
+}
+
+# Git branch switcher with fzf
+function fzf_git_branch() {
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "Not in a git repository"
+        return 1
+    fi
+    
+    local branch
+    branch=$(git branch -a | grep -v HEAD | sed 's/^..//' | sed 's/remotes\///' | 
+             sort -u | fzf --prompt="Switch to branch: ")
+    
+    if [ -n "$branch" ]; then
+        git checkout "$branch"
+    fi
+}
+
+# Docker container management
+function docker_exec() {
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "Docker not installed"
+        return 1
+    fi
+    
+    local container
+    container=$(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | 
+                fzf --header-lines=1 --prompt="Select container: " | 
+                awk '{print $1}')
+    
+    if [ -n "$container" ]; then
+        docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
+    fi
+}
+
+# ============================================================================
+# FZF ENHANCED FUNCTIONS
+# ============================================================================
+# History search with fzf
+function fzf_history() {
+    local selected
+    selected=$(history | fzf --tac --no-sort --height 40% --reverse --border | sed 's/^[ ]*[0-9]*[ ]*//')
+    if [ -n "$selected" ]; then
+        print -z "$selected"
+    fi
+}
+
+# Bind Ctrl+R to fzf history search
+bindkey '^R' fzf_history
+zle -N fzf_history
+
+# ============================================================================
+# KEY BINDINGS
+# ============================================================================
+# History substring search bindings (if plugin is loaded)
+if [[ -n "${functions[_zsh_highlight]}" ]]; then
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    bindkey '^P' history-substring-search-up
+    bindkey '^N' history-substring-search-down
+fi
+
+# Better word navigation
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+# ============================================================================
+# COMPLETION SETTINGS
+# ============================================================================
+# Enable completion
+autoload -Uz compinit
+compinit
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Colored completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Menu selection
+zstyle ':completion:*' menu select
+
+# Group matches and describe
+zstyle ':completion:*:*:*:*:descriptions' format '%F{green}-- %d --%f'
+zstyle ':completion:*' group-name ''
+
+# ============================================================================
+# LOCAL CUSTOMIZATIONS
+# ============================================================================
+# Source local customizations if they exist
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# ============================================================================
+# STARTUP MESSAGE
+# ============================================================================
+case $ENVIRONMENT in
+    "container")
+        echo "📦 Container ZSH loaded successfully!"
+        ;;
+    "macos")
+        echo "🍎 macOS ZSH loaded successfully!"
+        ;;
+    *)
+        echo "🐧 Linux ZSH loaded successfully!"
+        ;;
+esac
+echo "💡 Type 'sysinfo' for system info, 'sa' to reload config"
