@@ -15,4 +15,4 @@ A comprehensive, cross-platform dotfiles setup that provides a beautiful and fun
 
 ### One-line install:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/moexius/fms_dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/moexius/fms_dotfiles/main/install.sh -o install.sh && chmod +x install.sh && ./install.sh && rm install.sh
