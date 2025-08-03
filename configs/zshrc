@@ -333,7 +333,14 @@ function sysinfo() {
     echo "  fzf: $(fzf --version 2>/dev/null || echo 'Not available')"
     echo "  zoxide: $(zoxide --version 2>/dev/null || echo 'Not available')"
     echo "  lsd: $(lsd --version 2>/dev/null || echo 'Not available')"
-    echo "  bat: $(bat --version 2>/dev/null | head -1 || echo 'Not available')"
+    # Properly detect bat/batcat
+    if command -v bat >/dev/null 2>&1; then
+        echo "  bat: $(bat --version 2>/dev/null | head -1 || echo 'Error getting version')"
+    elif command -v batcat >/dev/null 2>&1; then
+        echo "  bat: $(batcat --version 2>/dev/null | head -1 || echo 'Error getting version')"
+    else
+        echo "  bat: Not available"
+    fi
 }
 
 # Find and kill process by name with fzf
