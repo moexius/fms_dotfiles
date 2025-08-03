@@ -110,23 +110,28 @@ install_packages() {
     
     case $OS in
         debian)
-            sudo apt install -y zsh curl git wget unzip build-essential fd-find bat lsd
+            sudo apt install -y zsh curl git wget unzip build-essential
+            # Try to install additional tools, but don't fail if they're not available
+            sudo apt install -y fd-find bat lsd 2>/dev/null || log_warning "Some additional tools not available in repositories"
             ;;
         rhel|fedora)
             if [[ "$PACKAGE_MANAGER" == "yum" ]]; then
                 sudo yum install -y zsh curl git wget unzip gcc make
                 # Install additional tools from EPEL if available
-                sudo yum install -y epel-release || true
-                sudo yum install -y fd-find bat lsd || true
+                sudo yum install -y epel-release 2>/dev/null || true
+                sudo yum install -y fd-find bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             else
-                sudo dnf install -y zsh curl git wget unzip gcc make fd-find bat lsd
+                sudo dnf install -y zsh curl git wget unzip gcc make
+                sudo dnf install -y fd-find bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             fi
             ;;
         arch)
-            sudo pacman -S --noconfirm zsh curl git wget unzip base-devel fd bat lsd
+            sudo pacman -S --noconfirm zsh curl git wget unzip base-devel
+            sudo pacman -S --noconfirm fd bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             ;;
         alpine)
-            sudo apk add zsh curl git wget unzip build-base fd bat lsd
+            sudo apk add zsh curl git wget unzip build-base
+            sudo apk add fd bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             ;;
         macos)
             if ! command -v brew >/dev/null 2>&1; then
@@ -173,12 +178,18 @@ install_additional_tools() {
     
     # Install fzf if not available via package manager
     if ! command -v fzf >/dev/null 2>&1 && [[ "$OS" != "macos" ]]; then
-        git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-        ~/.fzf/install --all
+        if [[ ! -d ~/.fzf ]]; then
+            log_info "Installing fzf..."
+            git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+            ~/.fzf/install --all --no-bash --no-fish
+        else
+            log_warning "fzf directory already exists, skipping..."
+        fi
     fi
     
     # Install zoxide if not available
     if ! command -v zoxide >/dev/null 2>&1; then
+        log_info "Installing zoxide..."
         case $OS in
             macos)
                 brew install zoxide
@@ -187,6 +198,8 @@ install_additional_tools() {
                 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
                 ;;
         esac
+    else
+        log_warning "zoxide already installed, skipping..."
     fi
     
     log_success "Additional tools installed"
@@ -227,6 +240,37 @@ backup_configs() {
     fi
 }
 
+# Set ZSH as default shell
+set_default_shell() {
+    log_info "Setting ZSH as default shell..."
+    
+    local zsh_path
+    zsh_path=$(which zsh)
+    
+    if [[ -z "$zsh_path" ]]; then
+        log_error "ZSH not found in PATH"
+        return 1
+    fi
+    
+    # Check if zsh is in /etc/shells
+    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then
+        log_info "Adding ZSH to /etc/shells..."
+        echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+    
+    # Change default shell if it's not already zsh
+    if [[ "$SHELL" != *"zsh"* ]]; then
+        log_info "Changing default shell to ZSH..."
+        if chsh -s "$zsh_path" 2>/dev/null; then
+            log_success "Default shell changed to ZSH"
+        else
+            log_warning "Could not change default shell automatically. You can change it manually with: chsh -s $zsh_path"
+        fi
+    else
+        log_info "ZSH is already the default shell"
+    fi
+}
+
 # Install configurations
 install_configs() {
     log_info "Installing configurations..."
@@ -252,18 +296,38 @@ install_configs() {
         exit 1
     fi
     
-    # Make zsh the default shell
-    if [[ "$SHELL" != *"zsh"* ]]; then
-        log_info "Setting ZSH as default shell..."
-        local zsh_path
-        zsh_path=$(which zsh)
-        
-        if ! grep -q "$zsh_path" /etc/shells; then
-            echo "$zsh_path" | sudo tee -a /etc/shells
-        fi
-        
-        chsh -s "$zsh_path"
-        log_success "ZSH set as default shell"
+    # Set ZSH as default shell
+    set_default_shell
+}
+
+# Install tldr if not available
+install_tldr() {
+    if ! command -v tldr >/dev/null 2>&1; then
+        log_info "Installing tldr..."
+        case $OS in
+            macos)
+                brew install tldr
+                ;;
+            debian)
+                sudo apt install -y tldr 2>/dev/null || {
+                    # Fallback to npm version if not in repos
+                    if command -v npm >/dev/null 2>&1; then
+                        sudo npm install -g tldr
+                    else
+                        log_warning "tldr not available, install nodejs and npm to get it"
+                    fi
+                }
+                ;;
+            *)
+                # Try package manager first, fallback to npm
+                case $PACKAGE_MANAGER in
+                    dnf) sudo dnf install -y tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
+                    yum) sudo yum install -y tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
+                    pacman) sudo pacman -S --noconfirm tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
+                    apk) sudo apk add tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
+                esac
+                ;;
+        esac
     fi
 }
 
@@ -276,7 +340,15 @@ main() {
     echo "║  This script will install and configure:                    ║"
     echo "║  • ZSH shell with custom configuration                      ║"
     echo "║  • Starship prompt with beautiful theme                     ║"
-    echo "║  • Essential development tools                               ║"
+    echo "║  • Essential development tools (fzf, zoxide, bat, lsd)      ║"
+    echo "║  • Automatic shell switching to ZSH                         ║"
+    echo "║                                                              ║"
+    echo "║  Supported platforms:                                       ║"
+    echo "║  • macOS (Homebrew)                                         ║"
+    echo "║  • Debian/Ubuntu (apt)                                      ║"
+    echo "║  • CentOS/RHEL/Fedora (yum/dnf)                            ║"
+    echo "║  • Arch Linux (pacman)                                      ║"
+    echo "║  • Alpine Linux (apk)                                       ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -295,6 +367,7 @@ main() {
     install_packages
     install_starship
     install_additional_tools
+    install_tldr
     setup_dotfiles
     backup_configs
     install_configs
@@ -303,12 +376,29 @@ main() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                    Installation Complete!                   ║"
     echo "║                                                              ║"
-    echo "║  Please restart your terminal or run:                       ║"
-    echo "║  source ~/.zshrc                                             ║"
+    echo "║  🎉 ZSH and Starship have been installed successfully!      ║"
     echo "║                                                              ║"
-    echo "║  Your old configurations have been backed up.               ║"
+    echo "║  Next steps:                                                 ║"
+    echo "║  1. Start ZSH: run 'zsh' command                            ║"
+    echo "║  2. Or log out and log back in for permanent change         ║"
+    echo "║  3. Enjoy your beautiful new shell!                         ║"
+    echo "║                                                              ║"
+    echo "║  Useful commands to try:                                     ║"
+    echo "║  • sysinfo    - Show system information                     ║"
+    echo "║  • weather    - Get weather info                            ║"
+    echo "║  • Ctrl+R     - Fuzzy search command history               ║"
+    echo "║  • Ctrl+T     - Fuzzy search files                         ║"
+    echo "║  • sa         - Reload shell configuration                  ║"
+    echo "║                                                              ║"
+    echo "║  Repository: https://github.com/moexius/fms_dotfiles        ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
+    
+    # Automatically start zsh if we're not already in it
+    if [[ "$0" != *"zsh"* ]] && [[ -z "$ZSH_VERSION" ]]; then
+        echo -e "${YELLOW}Starting ZSH now...${NC}"
+        exec zsh
+    fi
 }
 
 # Run main function
