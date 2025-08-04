@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
 # Universal ZSH + Starship Dotfiles Installer
-# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, Alpine, macOS
+# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, Alpine, openSUSE, macOS
 # ============================================================================
 
 set -e
@@ -102,6 +102,9 @@ update_packages() {
         apk)
             sudo apk update
             ;;
+        zypper)
+            sudo zypper refresh
+            ;;
         brew)
             brew update
             ;;
@@ -137,6 +140,13 @@ install_packages() {
             sudo apk add zsh curl git wget unzip build-base
             sudo apk add fd bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             ;;
+        opensuse)
+            sudo zypper install -y zsh curl git wget unzip gcc make
+            # Install additional tools if available
+            sudo zypper install -y fd bat lsd 2>/dev/null || log_warning "Some additional tools not available in repositories"
+            # Some tools might be in different package names for openSUSE
+            sudo zypper install -y find-utils ripgrep 2>/dev/null || true
+            ;;
         macos)
             if ! command -v brew >/dev/null 2>&1; then
                 log_info "Installing Homebrew..."
@@ -166,6 +176,15 @@ install_starship() {
     case $OS in
         macos)
             brew install starship
+            ;;
+        opensuse)
+            # Try to install from repositories first
+            if sudo zypper install -y starship 2>/dev/null; then
+                log_success "Starship installed from repository"
+            else
+                log_info "Installing Starship from official installer..."
+                curl -sS https://starship.rs/install.sh | sh -s -- -y
+            fi
             ;;
         *)
             # Use the official installer for Linux
@@ -197,6 +216,12 @@ install_additional_tools() {
         case $OS in
             macos)
                 brew install zoxide
+                ;;
+            opensuse)
+                # Try repository first, fallback to installer
+                if ! sudo zypper install -y zoxide 2>/dev/null; then
+                    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+                fi
                 ;;
             *)
                 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
@@ -322,6 +347,16 @@ install_tldr() {
                     fi
                 }
                 ;;
+            opensuse)
+                # Try repository first, fallback to npm
+                if ! sudo zypper install -y tldr 2>/dev/null; then
+                    if command -v npm >/dev/null 2>&1; then
+                        sudo npm install -g tldr
+                    else
+                        log_warning "tldr not available, install nodejs and npm to get it"
+                    fi
+                fi
+                ;;
             *)
                 # Try package manager first, fallback to npm
                 case $PACKAGE_MANAGER in
@@ -329,6 +364,7 @@ install_tldr() {
                     yum) sudo yum install -y tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
                     pacman) sudo pacman -S --noconfirm tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
                     apk) sudo apk add tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
+                    zypper) sudo zypper install -y tldr 2>/dev/null || log_warning "tldr not available in repositories" ;;
                 esac
                 ;;
         esac
@@ -353,6 +389,7 @@ main() {
     echo "║  • CentOS/RHEL/Fedora (yum/dnf)                            ║"
     echo "║  • Arch Linux (pacman)                                      ║"
     echo "║  • Alpine Linux (apk)                                       ║"
+    echo "║  • openSUSE (zypper)                                        ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
