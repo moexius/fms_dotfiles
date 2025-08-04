@@ -371,22 +371,75 @@ function extract() {
     fi
     
     if [ -f "$1" ]; then
-        case "$1" in
-            *.tar.bz2)   tar xjf "$1"     ;;
-            *.tar.gz)    tar xzf "$1"     ;;
-            *.bz2)       bunzip2 "$1"     ;;
-            *.rar)       unrar x "$1"     ;;
-            *.gz)        gunzip "$1"      ;;
-            *.tar)       tar xf "$1"      ;;
-            *.tbz2)      tar xjf "$1"     ;;
-            *.tgz)       tar xzf "$1"     ;;
-            *.zip)       unzip "$1"       ;;
-            *.Z)         uncompress "$1"  ;;
-            *.7z)        7z x "$1"        ;;
-            *.xz)        unxz "$1"        ;;
-            *.lzma)      unlzma "$1"      ;;
-            *)           echo "Error: '$1' cannot be extracted via extract()" ;;
+        # Get the filename without path and extension
+        local filename=$(basename "$1")
+        local folder_name="${filename%.*}"
+        
+        # For files with double extensions like .tar.gz, .tar.bz2, etc.
+        case "$filename" in
+            *.tar.gz|*.tar.bz2|*.tar.xz|*.tar.lzma)
+                folder_name="${filename%.tar.*}"
+                ;;
+            *.tar.*)
+                folder_name="${filename%.tar.*}"
+                ;;
         esac
+        
+        # Handle existing directories
+        local counter=1
+        local original_folder_name="$folder_name"
+        while [ -d "$folder_name" ]; do
+            folder_name="${original_folder_name}_${counter}"
+            ((counter++))
+        done
+        
+        # Create the extraction directory
+        mkdir -p "$folder_name"
+        
+        echo "Extracting '$1' to folder '$folder_name'..."
+        
+        case "$1" in
+            *.tar.bz2)   tar xjf "$1" -C "$folder_name" ;;
+            *.tar.gz)    tar xzf "$1" -C "$folder_name" ;;
+            *.bz2)       
+                cp "$1" "$folder_name/"
+                (cd "$folder_name" && bunzip2 "$(basename "$1")")
+                ;;
+            *.rar)       unrar x "$1" "$folder_name/" ;;
+            *.gz)        
+                cp "$1" "$folder_name/"
+                (cd "$folder_name" && gunzip "$(basename "$1")")
+                ;;
+            *.tar)       tar xf "$1" -C "$folder_name" ;;
+            *.tbz2)      tar xjf "$1" -C "$folder_name" ;;
+            *.tgz)       tar xzf "$1" -C "$folder_name" ;;
+            *.zip)       unzip "$1" -d "$folder_name" ;;
+            *.Z)         
+                cp "$1" "$folder_name/"
+                (cd "$folder_name" && uncompress "$(basename "$1")")
+                ;;
+            *.7z)        7z x "$1" -o"$folder_name" ;;
+            *.xz)        
+                cp "$1" "$folder_name/"
+                (cd "$folder_name" && unxz "$(basename "$1")")
+                ;;
+            *.lzma)      
+                cp "$1" "$folder_name/"
+                (cd "$folder_name" && unlzma "$(basename "$1")")
+                ;;
+            *)           
+                echo "Error: '$1' cannot be extracted via extract()"
+                rmdir "$folder_name" 2>/dev/null  # Remove empty directory
+                return 1
+                ;;
+        esac
+        
+        if [ $? -eq 0 ]; then
+            echo "Successfully extracted to '$folder_name/'"
+        else
+            echo "Error occurred during extraction"
+            return 1
+        fi
     else
         echo "Error: '$1' is not a valid file"
         return 1
