@@ -48,6 +48,10 @@ detect_os() {
                 OS="fedora"
                 PACKAGE_MANAGER="dnf"
                 ;;
+            opensuse*|sles)
+                OS="opensuse"
+                PACKAGE_MANAGER="zypper"
+                ;;
             arch|manjaro)
                 OS="arch"
                 PACKAGE_MANAGER="pacman"
