@@ -121,9 +121,12 @@ zinit light zsh-users/zsh-history-substring-search
 zinit light zsh-users/zsh-completions
 
 # Only load zsh-autocomplete if not in LXC container
+ZSH_AUTOCOMPLETE_LOADED=false
 if ! command -v systemd-detect-virt >/dev/null 2>&1 || [[ "$(systemd-detect-virt 2>/dev/null)" != "lxc" ]]; then
     zinit light marlonrichert/zsh-autocomplete
+    ZSH_AUTOCOMPLETE_LOADED=true
 fi
+
 
 # Oh My Zsh plugins via Zinit
 zinit snippet OMZP::git
@@ -1140,5 +1143,15 @@ case $ENVIRONMENT in
         echo "🐧 Linux ZSH loaded successfully!"
         ;;
 esac
+
+# Show plugin status
+echo "🔌 Plugins loaded:"
+echo "   ✅ syntax-highlighting, autosuggestions, history-substring-search, completions"
+if [[ "$ZSH_AUTOCOMPLETE_LOADED" == "true" ]]; then
+    echo "   ⚡ zsh-autocomplete (enabled)"
+else
+    echo "   🏗️  zsh-autocomplete (disabled - container optimization)"
+fi
+
 echo "💡 Type 'sysinfo' for system info, 'sa' to reload config"
 echo "🔍 Type 'ah' for alias help, 'as <term>' to search aliases"
