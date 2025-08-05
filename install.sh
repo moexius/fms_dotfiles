@@ -371,6 +371,115 @@ install_tldr() {
     fi
 }
 
+# Create private aliases file for SSH servers (only on designated systems)
+create_private_aliases() {
+    local private_aliases="$HOME/.zsh_private_aliases"
+    
+    if [[ -f "$private_aliases" ]]; then
+        log_info "Private aliases file already exists at $private_aliases"
+        return 0
+    fi
+    
+    # Only offer to create on macOS systems by default
+    if [[ "$OS" != "macos" ]]; then
+        log_info "Private aliases file creation is typically only needed on your main macOS system"
+        echo
+        read -p "Create private aliases file on this $OS system anyway? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Skipping private aliases file creation"
+            log_info "The file can be created later if needed for SSH Apple Watch authentication"
+            return 0
+        fi
+    else
+        # On macOS, ask if this is the main system
+        echo
+        log_info "Private aliases file not found at $private_aliases"
+        echo
+        echo -e "${YELLOW}This file contains sensitive SSH server information and should only${NC}"
+        echo -e "${YELLOW}be created on your main macOS system where you manage servers.${NC}"
+        echo
+        echo -e "${BLUE}Benefits of creating this file:${NC}"
+        echo -e "  • Enables SSH Apple Watch authentication setup"
+        echo -e "  • Provides convenient SSH server aliases"
+        echo -e "  • Keeps sensitive IPs out of public dotfiles repo"
+        echo
+        read -p "Is this your main macOS system? Create private aliases file? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Skipping private aliases file creation"
+            log_info "You can create $private_aliases manually later if needed"
+            return 0
+        fi
+    fi
+    
+    log_info "Creating private aliases file for SSH servers..."
+    
+    cat > "$private_aliases" << 'EOF'
+# Private ZSH Aliases
+# This file contains sensitive information and should not be committed to version control
+# Created by dotfiles installer
+
+# SSH Server Aliases (replace with your actual server IPs)
+# Format: alias servername='ssh user@ip.address'
+alias huntarr='ssh root@192.168.1.196'
+alias komga='ssh root@192.168.1.72'
+alias mylar3='ssh root@192.168.1.52'
+alias overseerr='ssh root@192.168.1.79'
+alias plexms='ssh root@192.168.1.221'
+alias prowlarr='ssh root@192.168.1.89'
+alias radarr='ssh root@192.168.1.172'
+alias sabnzbd='ssh root@192.168.1.88'
+alias sonarr='ssh root@192.168.1.157'
+alias tautulli='ssh root@192.168.1.66'
+alias tinypc='ssh root@192.168.1.12'
+
+# Add your private environment variables here
+# export PRIVATE_API_KEY="your-secret-key"
+# export DATABASE_URL="your-database-connection"
+
+# Add any other private configurations here
+EOF
+    
+    chmod 600 "$private_aliases"  # Make it readable only by owner
+    log_success "Private aliases file created at $private_aliases"
+    echo
+    echo -e "${YELLOW}Important:${NC}"
+    echo -e "  1. Update the IP addresses in $private_aliases with your actual servers"
+    echo -e "  2. This file is excluded from version control (keep it private)"
+    echo -e "  3. Restart your terminal or run 'source ~/.zshrc' to load the aliases"
+}
+
+# SSH Apple Watch Setup (only on macOS with private aliases)
+setup_ssh_apple_watch() {
+    # Only offer SSH Apple Watch setup on macOS and if private aliases file exists
+    if [[ "$OS" == "macos" ]] && [[ -f "$HOME/.zsh_private_aliases" ]]; then
+        echo
+        echo -e "${BLUE}🍎⌚ SSH Apple Watch Authentication Available${NC}"
+        echo -e "This will set up SSH key authentication using your Apple Watch for approval."
+        echo
+        read -p "Setup SSH with Apple Watch authentication? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Running SSH Apple Watch setup..."
+            if [[ -f "$DOTFILES_DIR/scripts/setup-ssh-apple-watch.sh" ]]; then
+                "$DOTFILES_DIR/scripts/setup-ssh-apple-watch.sh"
+            else
+                log_error "SSH setup script not found at $DOTFILES_DIR/scripts/setup-ssh-apple-watch.sh"
+                log_info "You can run it manually later when the script is available"
+            fi
+        fi
+    else
+        # Log why SSH Apple Watch setup is not available
+        if [[ "$OS" != "macos" ]]; then
+            log_info "SSH Apple Watch authentication is only available on macOS (detected: $OS)"
+        elif [[ ! -f "$HOME/.zsh_private_aliases" ]]; then
+            log_info "SSH Apple Watch setup requires private aliases file ($HOME/.zsh_private_aliases)"
+            log_info "Create the private aliases file first, then run the SSH setup script manually"
+        fi
+    fi
+}
+
 # Main installation function
 main() {
     echo -e "${CYAN}"
@@ -382,6 +491,8 @@ main() {
     echo "║  • Starship prompt with beautiful theme                     ║"
     echo "║  • Essential development tools (fzf, zoxide, bat, lsd)      ║"
     echo "║  • Automatic shell switching to ZSH                         ║"
+    echo "║  • Optional private aliases for SSH servers                 ║"
+    echo "║  • Optional SSH Apple Watch authentication (macOS only)     ║"
     echo "║                                                              ║"
     echo "║  Supported platforms:                                       ║"
     echo "║  • macOS (Homebrew)                                         ║"
@@ -413,6 +524,12 @@ main() {
     backup_configs
     install_configs
     
+    # Create private aliases (user will be prompted based on OS)
+    create_private_aliases
+    
+    # SSH Apple Watch setup (will only work if private aliases exist and on macOS)
+    setup_ssh_apple_watch
+    
     echo -e "${GREEN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                    Installation Complete!                   ║"
@@ -422,7 +539,8 @@ main() {
     echo "║  Next steps:                                                 ║"
     echo "║  1. Start ZSH: run 'zsh' command                            ║"
     echo "║  2. Or log out and log back in for permanent change         ║"
-    echo "║  3. Enjoy your beautiful new shell!                         ║"
+    echo "║  3. Update private aliases file with your actual server IPs ║"
+    echo "║  4. Enjoy your beautiful new shell!                         ║"
     echo "║                                                              ║"
     echo "║  Useful commands to try:                                     ║"
     echo "║  • sysinfo    - Show system information                     ║"
@@ -430,10 +548,26 @@ main() {
     echo "║  • Ctrl+R     - Fuzzy search command history               ║"
     echo "║  • Ctrl+T     - Fuzzy search files                         ║"
     echo "║  • sa         - Reload shell configuration                  ║"
+    echo "║  • ah         - Alias help system                           ║"
     echo "║                                                              ║"
+    if [[ -f "$HOME/.zsh_private_aliases" ]]; then
+    echo "║  Private aliases created - remember to update server IPs!   ║"
+    echo "║                                                              ║"
+    fi
     echo "║  Repository: https://github.com/moexius/fms_dotfiles        ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
+    
+    # Show next steps for private aliases if created
+    if [[ -f "$HOME/.zsh_private_aliases" ]]; then
+        echo
+        echo -e "${YELLOW}📝 Don't forget to:${NC}"
+        echo -e "   1. Edit ~/.zsh_private_aliases with your actual server IPs"
+        echo -e "   2. Run 'source ~/.zshrc' or restart your terminal"
+        if [[ "$OS" == "macos" ]]; then
+            echo -e "   3. Run SSH Apple Watch setup if you skipped it: $DOTFILES_DIR/scripts/setup-ssh-apple-watch.sh"
+        fi
+    fi
     
     # Automatically start zsh if we're not already in it
     if [[ "$0" != *"zsh"* ]] && [[ -z "$ZSH_VERSION" ]]; then
