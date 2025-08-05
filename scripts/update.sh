@@ -84,12 +84,19 @@ find_config_files() {
         ["nvim"]=""
     )
     
-    # Search for files in common locations
+    # Search for files in common locations (note: configs with 's')
     for config in "${!CONFIG_PATHS[@]}"; do
         # Try multiple possible locations
         local possible_paths=(
             "$DOTFILES_DIR/$config"
-            "$DOTFILES_DIR/config/$config"
+            "$DOTFILES_DIR/configs/$config"              # Added configs (plural)
+            "$DOTFILES_DIR/config/$config"               # Keep config (singular) as fallback
+            "$DOTFILES_DIR/configs/zsh/$config"          # Added configs/zsh
+            "$DOTFILES_DIR/configs/starship/$config"     # Added configs/starship
+            "$DOTFILES_DIR/configs/vim/$config"          # Added configs/vim
+            "$DOTFILES_DIR/configs/git/$config"          # Added configs/git
+            "$DOTFILES_DIR/configs/tmux/$config"         # Added configs/tmux
+            "$DOTFILES_DIR/configs/nvim"                 # Added configs/nvim
             "$DOTFILES_DIR/config/zsh/$config"
             "$DOTFILES_DIR/config/starship/$config"
             "$DOTFILES_DIR/config/vim/$config"
@@ -117,12 +124,15 @@ find_config_files() {
         fi
     done
     
-    # Also search for any .zshrc file
+    # Also search for any .zshrc file in configs directory
     if [[ -z "${CONFIG_PATHS[zshrc]}" ]]; then
         local zshrc_candidates=(
             "$DOTFILES_DIR/.zshrc"
             "$DOTFILES_DIR/zshrc"
+            "$DOTFILES_DIR/configs/zshrc"        # Added
+            "$DOTFILES_DIR/configs/.zshrc"       # Added
             "$DOTFILES_DIR/config/zshrc"
+            "$DOTFILES_DIR/config/.zshrc"
         )
         
         for candidate in "${zshrc_candidates[@]}"; do
