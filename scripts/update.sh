@@ -70,14 +70,87 @@ detect_os() {
     log_info "Detected OS: $OS with package manager: $PACKAGE_MANAGER"
 }
 
+# Find configuration files in dotfiles directory
+find_config_files() {
+    log_info "Scanning dotfiles directory for configuration files..."
+    
+    # Common config file locations to check
+    declare -A CONFIG_PATHS=(
+        ["zshrc"]=""
+        ["starship.toml"]=""
+        ["vimrc"]=""
+        ["gitconfig"]=""
+        ["tmux.conf"]=""
+        ["nvim"]=""
+    )
+    
+    # Search for files in common locations
+    for config in "${!CONFIG_PATHS[@]}"; do
+        # Try multiple possible locations
+        local possible_paths=(
+            "$DOTFILES_DIR/$config"
+            "$DOTFILES_DIR/config/$config"
+            "$DOTFILES_DIR/config/zsh/$config"
+            "$DOTFILES_DIR/config/starship/$config"
+            "$DOTFILES_DIR/config/vim/$config"
+            "$DOTFILES_DIR/config/git/$config"
+            "$DOTFILES_DIR/config/tmux/$config"
+            "$DOTFILES_DIR/config/nvim"
+            "$DOTFILES_DIR/zsh/$config"
+            "$DOTFILES_DIR/starship/$config"
+            "$DOTFILES_DIR/vim/$config"
+            "$DOTFILES_DIR/git/$config"
+            "$DOTFILES_DIR/tmux/$config"
+            "$DOTFILES_DIR/nvim"
+        )
+        
+        for path in "${possible_paths[@]}"; do
+            if [[ -f "$path" ]] || [[ -d "$path" && "$config" == "nvim" ]]; then
+                CONFIG_PATHS["$config"]="$path"
+                log_info "Found $config at: $path"
+                break
+            fi
+        done
+        
+        if [[ -z "${CONFIG_PATHS[$config]}" ]]; then
+            log_warning "$config not found in dotfiles directory"
+        fi
+    done
+    
+    # Also search for any .zshrc file
+    if [[ -z "${CONFIG_PATHS[zshrc]}" ]]; then
+        local zshrc_candidates=(
+            "$DOTFILES_DIR/.zshrc"
+            "$DOTFILES_DIR/zshrc"
+            "$DOTFILES_DIR/config/zshrc"
+        )
+        
+        for candidate in "${zshrc_candidates[@]}"; do
+            if [[ -f "$candidate" ]]; then
+                CONFIG_PATHS["zshrc"]="$candidate"
+                log_info "Found zshrc at: $candidate"
+                break
+            fi
+        done
+    fi
+    
+    # Export found paths for use in other functions
+    export FOUND_ZSHRC="${CONFIG_PATHS[zshrc]}"
+    export FOUND_STARSHIP="${CONFIG_PATHS[starship.toml]}"
+    export FOUND_VIMRC="${CONFIG_PATHS[vimrc]}"
+    export FOUND_GITCONFIG="${CONFIG_PATHS[gitconfig]}"
+    export FOUND_TMUX="${CONFIG_PATHS[tmux.conf]}"
+    export FOUND_NVIM="${CONFIG_PATHS[nvim]}"
+}
+
 # Backup existing config file
 backup_config() {
     local config_file="$1"
     local backup_dir="$HOME/.config-backup-$(date +%Y%m%d_%H%M%S)"
     
-    if [[ -f "$config_file" ]]; then
+    if [[ -f "$config_file" ]] || [[ -d "$config_file" ]]; then
         mkdir -p "$backup_dir"
-        cp "$config_file" "$backup_dir/"
+        cp -r "$config_file" "$backup_dir/"
         log_success "Backed up $(basename "$config_file") to $backup_dir"
         return 0
     fi
@@ -90,18 +163,23 @@ install_config() {
     local destination="$2"
     local config_name="$3"
     
-    if [[ -f "$source" ]]; then
+    if [[ -n "$source" ]] && ([[ -f "$source" ]] || [[ -d "$source" ]]); then
         # Backup existing config
         backup_config "$destination"
         
         # Create destination directory if needed
         mkdir -p "$(dirname "$destination")"
         
-        # Copy config file
-        cp "$source" "$destination"
+        # Copy config file or directory
+        if [[ -d "$source" ]]; then
+            cp -r "$source" "$(dirname "$destination")/"
+        else
+            cp "$source" "$destination"
+        fi
         log_success "$config_name configuration updated"
+        return 0
     else
-        log_warning "$config_name configuration not found: $source"
+        log_warning "$config_name configuration not found"
         return 1
     fi
 }
@@ -110,9 +188,15 @@ install_config() {
 check_dotfiles_dir() {
     if [[ ! -d "$DOTFILES_DIR" ]]; then
         log_error "Dotfiles directory not found at: $DOTFILES_DIR"
-        log_error "Please run the installer first with: ./install.sh"
+        log_error "Please run the installer first or clone your dotfiles repository"
         exit 1
     fi
+    
+    log_info "Dotfiles directory found at: $DOTFILES_DIR"
+    
+    # List contents for debugging
+    log_info "Dotfiles directory contents:"
+    ls -la "$DOTFILES_DIR" | head -10
 }
 
 # Update dotfiles repository
@@ -123,12 +207,12 @@ update_repository() {
     
     # Check if we're in a git repository
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
-        log_error "Dotfiles directory is not a git repository"
-        exit 1
+        log_warning "Dotfiles directory is not a git repository, skipping git update"
+        return 0
     fi
     
     # Check for uncommitted changes
-    if ! git diff-index --quiet HEAD --; then
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
         log_warning "You have uncommitted changes in your dotfiles repository"
         read -p "Do you want to stash them and continue? (y/N): " -n 1 -r
         echo
@@ -136,17 +220,15 @@ update_repository() {
             git stash push -m "Auto-stash before update $(date)"
             log_info "Changes stashed"
         else
-            log_info "Update cancelled"
-            exit 0
+            log_info "Continuing without stashing changes"
         fi
     fi
     
     # Pull latest changes
-    if git pull origin main; then
+    if git pull origin main 2>/dev/null || git pull origin master 2>/dev/null; then
         log_success "Repository updated successfully"
     else
-        log_error "Failed to update repository"
-        exit 1
+        log_warning "Failed to update repository (may already be up to date)"
     fi
 }
 
@@ -156,53 +238,71 @@ update_configs() {
     
     local configs_updated=0
     
-    # Update ZSH config
-    if install_config "$DOTFILES_DIR/config/zsh/zshrc" "$HOME/.zshrc" "ZSH"; then
-        ((configs_updated++))
-    fi
+    # Find all config files first
+    find_config_files
     
-    # Update ZSH aliases if they exist
-    if [[ -f "$DOTFILES_DIR/config/zsh/aliases" ]]; then
-        install_config "$DOTFILES_DIR/config/zsh/aliases" "$HOME/.zsh_aliases" "ZSH aliases"
+    # Update ZSH config
+    if install_config "$FOUND_ZSHRC" "$HOME/.zshrc" "ZSH"; then
         ((configs_updated++))
     fi
     
     # Update Starship config
-    if install_config "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml" "Starship"; then
+    if install_config "$FOUND_STARSHIP" "$HOME/.config/starship.toml" "Starship"; then
         ((configs_updated++))
     fi
     
-    # Update Vim config if it exists
-    if [[ -f "$DOTFILES_DIR/config/vim/vimrc" ]]; then
-        install_config "$DOTFILES_DIR/config/vim/vimrc" "$HOME/.vimrc" "Vim"
+    # Update Vim config
+    if install_config "$FOUND_VIMRC" "$HOME/.vimrc" "Vim"; then
         ((configs_updated++))
     fi
     
-    # Update Git config if it exists
-    if [[ -f "$DOTFILES_DIR/config/git/gitconfig" ]]; then
-        install_config "$DOTFILES_DIR/config/git/gitconfig" "$HOME/.gitconfig" "Git"
+    # Update Git config
+    if install_config "$FOUND_GITCONFIG" "$HOME/.gitconfig" "Git"; then
         ((configs_updated++))
     fi
     
-    # Update Tmux config if it exists
-    if [[ -f "$DOTFILES_DIR/config/tmux/tmux.conf" ]]; then
-        install_config "$DOTFILES_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf" "Tmux"
+    # Update Tmux config
+    if install_config "$FOUND_TMUX" "$HOME/.tmux.conf" "Tmux"; then
         ((configs_updated++))
     fi
     
-    # Update Neovim config if it exists
-    if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
-        if [[ -d "$HOME/.config/nvim" ]]; then
-            backup_config "$HOME/.config/nvim"
+    # Update Neovim config
+    if install_config "$FOUND_NVIM" "$HOME/.config/nvim" "Neovim"; then
+        ((configs_updated++))
+    fi
+    
+    # Check for other common config files
+    local other_configs=(
+        "bashrc:$HOME/.bashrc"
+        "bash_profile:$HOME/.bash_profile"
+        "profile:$HOME/.profile"
+        "inputrc:$HOME/.inputrc"
+    )
+    
+    for config_pair in "${other_configs[@]}"; do
+        local config_name="${config_pair%%:*}"
+        local dest_path="${config_pair##*:}"
+        local source_path=""
+        
+        # Try to find the config file
+        for possible_path in "$DOTFILES_DIR/$config_name" "$DOTFILES_DIR/config/$config_name" "$DOTFILES_DIR/.*$config_name"; do
+            if [[ -f "$possible_path" ]]; then
+                source_path="$possible_path"
+                break
+            fi
+        done
+        
+        if [[ -n "$source_path" ]]; then
+            if install_config "$source_path" "$dest_path" "$config_name"; then
+                ((configs_updated++))
+            fi
         fi
-        mkdir -p "$HOME/.config"
-        cp -r "$DOTFILES_DIR/config/nvim" "$HOME/.config/"
-        log_success "Neovim configuration updated"
-        ((configs_updated++))
-    fi
+    done
     
     if [[ $configs_updated -eq 0 ]]; then
         log_warning "No configuration files were updated"
+        log_info "Available files in dotfiles directory:"
+        find "$DOTFILES_DIR" -maxdepth 3 -type f -name "*.toml" -o -name "*rc" -o -name "*config*" | head -10
     else
         log_success "$configs_updated configuration file(s) updated"
     fi
@@ -271,14 +371,30 @@ update_tools() {
 
 # Show what was updated
 show_summary() {
+    local configs_found=0
+    local tools_updated="❌"
+    
+    # Count found configurations
+    [[ -n "$FOUND_ZSHRC" ]] && ((configs_found++))
+    [[ -n "$FOUND_STARSHIP" ]] && ((configs_found++))
+    [[ -n "$FOUND_VIMRC" ]] && ((configs_found++))
+    [[ -n "$FOUND_GITCONFIG" ]] && ((configs_found++))
+    [[ -n "$FOUND_TMUX" ]] && ((configs_found++))
+    [[ -n "$FOUND_NVIM" ]] && ((configs_found++))
+    
     echo
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                     Update Complete!                        ║"
     echo "║                                                              ║"
     echo "║  ✅ Dotfiles repository updated                              ║"
-    echo "║  ✅ Configuration files updated                              ║"
-    echo "║  ✅ System tools updated                                     ║"
+    echo "║  📁 Configuration files found: $configs_found                        ║"
+    if [[ $configs_found -gt 0 ]]; then
+        echo "║  ✅ Configuration files updated                              ║"
+    else
+        echo "║  ⚠️  No configuration files found to update                 ║"
+    fi
+    echo "║  $tools_updated System tools updated                                     ║"
     echo "║                                                              ║"
     echo "║  Next steps:                                                 ║"
     echo "║  1. Restart your terminal or run: source ~/.zshrc           ║"
@@ -302,7 +418,8 @@ main() {
     echo "║                                                              ║"
     echo "║  This script will:                                          ║"
     echo "║  • Update the dotfiles repository                           ║"
-    echo "║  • Update configuration files                               ║"
+    echo "║  • Scan for configuration files                             ║"
+    echo "║  • Update found configuration files                         ║"
     echo "║  • Update system tools (optional)                           ║"
     echo "║  • Create backups of existing configs                       ║"
     echo "║                                                              ║"
@@ -363,8 +480,8 @@ main() {
     
     show_summary
     
-    # Automatically reload zsh if we're in zsh
-    if [[ -n "$ZSH_VERSION" ]]; then
+    # Automatically reload zsh if we're in zsh and zshrc was updated
+    if [[ -n "$ZSH_VERSION" ]] && [[ -n "$FOUND_ZSHRC" ]]; then
         log_info "Reloading ZSH configuration..."
         source ~/.zshrc
         log_success "ZSH configuration reloaded!"
