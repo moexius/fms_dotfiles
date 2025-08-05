@@ -1116,6 +1116,23 @@ zstyle ':completion:*' group-name ''
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
 # ============================================================================
+# PRIVATE CUSTOMIZATIONS (not tracked by dotfiles)
+# ============================================================================
+# Source private aliases that shouldn't be in version control
+PRIVATE_ALIASES_FILE="$HOME/.zsh_private_aliases"
+
+if [[ -f "$PRIVATE_ALIASES_FILE" ]]; then
+    if [[ -r "$PRIVATE_ALIASES_FILE" ]]; then
+        source "$PRIVATE_ALIASES_FILE"
+        echo "🔒 Private aliases loaded from $PRIVATE_ALIASES_FILE"
+    else
+        echo "⚠️  Private aliases file exists but is not readable: $PRIVATE_ALIASES_FILE"
+    fi
+else
+    echo "💡 Create $PRIVATE_ALIASES_FILE for private configurations"
+fi
+
+# ============================================================================
 # STARTUP MESSAGE
 # ============================================================================
 case $ENVIRONMENT in
