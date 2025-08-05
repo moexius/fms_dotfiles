@@ -1110,12 +1110,6 @@ zstyle ':completion:*:*:*:*:descriptions' format '%F{green}-- %d --%f'
 zstyle ':completion:*' group-name ''
 
 # ============================================================================
-# LOCAL CUSTOMIZATIONS
-# ============================================================================
-# Source local customizations if they exist
-[ -f ~/.zshrc.local ] && source ~/.zshrc.local
-
-# ============================================================================
 # PRIVATE CUSTOMIZATIONS (not tracked by dotfiles)
 # ============================================================================
 # Source private aliases that shouldn't be in version control
