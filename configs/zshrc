@@ -119,7 +119,11 @@ zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-history-substring-search
 zinit light zsh-users/zsh-completions
-zinit light marlonrichert/zsh-autocomplete
+
+# Only load zsh-autocomplete if not in LXC container
+if ! command -v systemd-detect-virt >/dev/null 2>&1 || [[ "$(systemd-detect-virt 2>/dev/null)" != "lxc" ]]; then
+    zinit light marlonrichert/zsh-autocomplete
+fi
 
 # Oh My Zsh plugins via Zinit
 zinit snippet OMZP::git
