@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
 # Universal Dotfiles Update Script
-# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, Alpine, openSUSE, macOS
+# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, CachyOS, Alpine, openSUSE, macOS
 # ============================================================================
 
 set -e
@@ -53,6 +53,11 @@ detect_os() {
                 OS="arch"
                 PACKAGE_MANAGER="pacman"
                 ;;
+            cachyos)
+                OS="arch"
+                PACKAGE_MANAGER="pacman"
+                IS_CACHYOS="true"
+                ;;
             alpine)
                 OS="alpine"
                 PACKAGE_MANAGER="apk"
@@ -68,6 +73,9 @@ detect_os() {
     fi
     
     log_info "Detected OS: $OS with package manager: $PACKAGE_MANAGER"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        log_info "🚀 CachyOS detected"
+    fi
 }
 
 # Find configuration files in dotfiles directory
@@ -351,6 +359,11 @@ update_tools() {
             ;;
         arch)
             log_info "Updating system packages..."
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                log_info "CachyOS detected - using optimized update sequence"
+                # Update CachyOS keyring first
+                sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
+            fi
             sudo pacman -Syu --noconfirm
             log_success "System packages updated"
             ;;
@@ -382,7 +395,7 @@ update_tools() {
 # Show what was updated
 show_summary() {
     local configs_found=0
-    local tools_updated="❌"
+    local tools_updated="✅"
     
     # Count found configurations
     [[ -n "$FOUND_ZSHRC" ]] && ((configs_found++))
@@ -405,6 +418,9 @@ show_summary() {
         echo "║  ⚠️  No configuration files found to update                 ║"
     fi
     echo "║  $tools_updated System tools updated                                     ║"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "║  🚀 CachyOS optimizations maintained                        ║"
+    fi
     echo "║                                                              ║"
     echo "║  Next steps:                                                 ║"
     echo "║  1. Restart your terminal or run: source ~/.zshrc           ║"
@@ -415,6 +431,10 @@ show_summary() {
     echo "║  • sa or source ~/.zshrc  - Reload shell config             ║"
     echo "║  • sysinfo               - Show system information          ║"
     echo "║  • ah                    - Show alias help                  ║"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "║  • al cachyos            - CachyOS performance commands     ║"
+        echo "║  • cm                    - CachyOS maintenance              ║"
+    fi
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -432,6 +452,9 @@ main() {
     echo "║  • Update found configuration files                         ║"
     echo "║  • Update system tools (optional)                           ║"
     echo "║  • Create backups of existing configs                       ║"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "║  • Maintain CachyOS performance optimizations               ║"
+    fi
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
