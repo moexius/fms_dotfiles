@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
 # Universal ZSH + Starship Dotfiles Installer
-# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, Alpine, openSUSE, macOS
+# Supports: Debian, Ubuntu, CentOS/RHEL, Fedora, Arch, CachyOS, Alpine, openSUSE, macOS
 # ============================================================================
 
 set -e
@@ -56,6 +56,12 @@ detect_os() {
                 OS="arch"
                 PACKAGE_MANAGER="pacman"
                 ;;
+            cachyos)
+                OS="arch"
+                PACKAGE_MANAGER="pacman"
+                IS_CACHYOS="true"
+                log_info "CachyOS detected - performance optimized Arch derivative"
+                ;;
             alpine)
                 OS="alpine"
                 PACKAGE_MANAGER="apk"
@@ -71,6 +77,9 @@ detect_os() {
     fi
     
     log_info "Detected OS: $OS with package manager: $PACKAGE_MANAGER"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        log_info "🚀 CachyOS optimizations will be enabled"
+    fi
 }
 
 # Check if running as root
@@ -97,6 +106,10 @@ update_packages() {
             sudo dnf update -y
             ;;
         pacman)
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                # Update CachyOS keyring first
+                sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
+            fi
             sudo pacman -Sy
             ;;
         apk)
@@ -129,12 +142,20 @@ install_packages() {
                 sudo yum install -y fd-find bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             else
                 sudo dnf install -y zsh curl git wget unzip gcc make
-                sudo dnf install -y fd-find bat lsd 2>/dev/null || log_warning "Some additional tools not available"
+                sudo dnf install -y fd bat lsd 2>/dev/null || log_warning "Some additional tools not available"
             fi
             ;;
         arch)
             sudo pacman -S --noconfirm zsh curl git wget unzip base-devel
             sudo pacman -S --noconfirm fd bat lsd 2>/dev/null || log_warning "Some additional tools not available"
+            
+            # CachyOS specific packages
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                log_info "Installing CachyOS specific tools..."
+                sudo pacman -S --noconfirm cpupower 2>/dev/null || log_warning "cpupower not available"
+                # Install CachyOS tools if available
+                sudo pacman -S --noconfirm cachyos-hello cachyos-kernel-manager 2>/dev/null || log_warning "CachyOS tools not available"
+            fi
             ;;
         alpine)
             sudo apk add zsh curl git wget unzip build-base
@@ -493,12 +514,13 @@ main() {
     echo "║  • Automatic shell switching to ZSH                         ║"
     echo "║  • Optional private aliases for SSH servers                 ║"
     echo "║  • Optional SSH Apple Watch authentication (macOS only)     ║"
+    echo "║  • CachyOS performance optimizations (if detected)          ║"
     echo "║                                                              ║"
     echo "║  Supported platforms:                                       ║"
     echo "║  • macOS (Homebrew)                                         ║"
     echo "║  • Debian/Ubuntu (apt)                                      ║"
     echo "║  • CentOS/RHEL/Fedora (yum/dnf)                            ║"
-    echo "║  • Arch Linux (pacman)                                      ║"
+    echo "║  • Arch Linux/CachyOS (pacman)                             ║"
     echo "║  • Alpine Linux (apk)                                       ║"
     echo "║  • openSUSE (zypper)                                        ║"
     echo "║                                                              ║"
@@ -534,7 +556,11 @@ main() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                    Installation Complete!                   ║"
     echo "║                                                              ║"
-    echo "║  🎉 ZSH and Starship have been installed successfully!      ║"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "║  🚀 ZSH and Starship installed with CachyOS optimizations!  ║"
+    else
+        echo "║  🎉 ZSH and Starship have been installed successfully!      ║"
+    fi
     echo "║                                                              ║"
     echo "║  Next steps:                                                 ║"
     echo "║  1. Start ZSH: run 'zsh' command                            ║"
@@ -549,6 +575,10 @@ main() {
     echo "║  • Ctrl+T     - Fuzzy search files                         ║"
     echo "║  • sa         - Reload shell configuration                  ║"
     echo "║  • ah         - Alias help system                           ║"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "║  • al cachyos - CachyOS performance commands                ║"
+        echo "║  • cm         - CachyOS maintenance                         ║"
+    fi
     echo "║                                                              ║"
     if [[ -f "$HOME/.zsh_private_aliases" ]]; then
     echo "║  Private aliases created - remember to update server IPs!   ║"
@@ -567,6 +597,16 @@ main() {
         if [[ "$OS" == "macos" ]]; then
             echo -e "   3. Run SSH Apple Watch setup if you skipped it: $DOTFILES_DIR/scripts/setup-ssh-apple-watch.sh"
         fi
+    fi
+    
+    # Show CachyOS specific info
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo
+        echo -e "${CYAN}🚀 CachyOS Performance Tips:${NC}"
+        echo -e "   • Use 'performance' to enable performance CPU governor"
+        echo -e "   • Use 'balanced' for balanced performance/power"
+        echo -e "   • Use 'cpustatus' to check current CPU settings"
+        echo -e "   • Use 'cm' for system maintenance"
     fi
     
     # Automatically start zsh if we're not already in it
