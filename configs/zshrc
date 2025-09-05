@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # ============================================================================
-# ZSH Configuration File - Universal Dotfiles
+# ZSH Configuration File - Universal Dotfiles with CachyOS Support
 # ============================================================================
 
 # ============================================================================
@@ -76,9 +76,12 @@ detect_os() {
                 export DETECTED_OS="opensuse"
                 export PKG_MANAGER="zypper"
                 ;;
-            arch|manjaro)
+            arch|manjaro|cachyos)
                 export DETECTED_OS="arch"
                 export PKG_MANAGER="pacman"
+                if [[ "$ID" == "cachyos" ]]; then
+                    export IS_CACHYOS="true"
+                fi
                 ;;
             alpine)
                 export DETECTED_OS="alpine"
@@ -127,7 +130,6 @@ if ! command -v systemd-detect-virt >/dev/null 2>&1 || [[ "$(systemd-detect-virt
     ZSH_AUTOCOMPLETE_LOADED=true
 fi
 
-
 # Oh My Zsh plugins via Zinit
 zinit snippet OMZP::git
 zinit snippet OMZP::colored-man-pages
@@ -150,7 +152,11 @@ else
             PROMPT='🍎 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
             ;;
         *)
-            PROMPT='🐧 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                PROMPT='🚀 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            else
+                PROMPT='🐧 %F{red}%n%f in %F{green}%m%f in %F{blue}%~%f ❯ '
+            fi
             ;;
     esac
     echo "⚠️  Starship not found. Install with the dotfiles installer."
@@ -217,6 +223,9 @@ alias_help() {
     echo "  dev        - Development tools"
     echo "  docker     - Docker commands"
     echo "  misc       - Miscellaneous"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "  cachyos    - CachyOS specific commands"
+    fi
     echo
     echo "Examples:"
     echo "  alias_search install"
@@ -279,6 +288,15 @@ alias_list() {
             echo "=================="
             alias | grep -E "docker|^d[a-z]=" | sort | sed 's/^/  /'
             ;;
+        cachyos)
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                echo "🚀 CachyOS Aliases:"
+                echo "=================="
+                alias | grep -E "(cachy|kernel|perf|governor)" | sort | sed 's/^/  /'
+            else
+                echo "❌ CachyOS aliases only available on CachyOS systems"
+            fi
+            ;;
         misc)
             echo "🔧 Miscellaneous Aliases:"
             echo "========================="
@@ -288,6 +306,9 @@ alias_list() {
             echo "📋 Available Categories:"
             echo "======================="
             echo "  package, system, service, network, file, git, dev, docker, misc"
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                echo "  cachyos (CachyOS specific)"
+            fi
             echo
             echo "Use: alias_list <category>"
             ;;
@@ -297,6 +318,9 @@ alias_list() {
 alias_os() {
     echo "🖥️  Current OS: $DETECTED_OS"
     echo "📦 Package Manager: $PKG_MANAGER"
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "🚀 CachyOS Features: Enabled"
+    fi
     echo
     echo "OS-Specific Aliases Available:"
     echo "============================="
@@ -319,8 +343,13 @@ alias_os() {
             alias | grep -E "(zypper|yast|snap)" | sort | sed 's/^/    /'
             ;;
         arch)
-            echo "  🏛️  Arch Linux aliases loaded"
-            alias | grep -E "(pacman|yay|aur)" | sort | sed 's/^/    /'
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                echo "  🚀 CachyOS aliases loaded"
+                alias | grep -E "(pacman|yay|aur|cachy|kernel|perf)" | sort | sed 's/^/    /'
+            else
+                echo "  🏛️  Arch Linux aliases loaded"
+                alias | grep -E "(pacman|yay|aur)" | sort | sed 's/^/    /'
+            fi
             ;;
         alpine)
             echo "  🏔️  Alpine Linux aliases loaded"
@@ -530,7 +559,7 @@ fi
 # ============================================================================
 if [[ "$DETECTED_OS" == "debian" ]]; then
     # APT package management
-    alias update="sudo apt update"
+    alias upd="sudo apt update"
     alias upgrade="sudo apt upgrade"
     alias install="sudo apt install"
     alias search="apt search"
@@ -572,7 +601,7 @@ fi
 if [[ "$DETECTED_OS" == "fedora" || "$DETECTED_OS" == "rhel" ]]; then
     # DNF/YUM package management
     if [[ "$PKG_MANAGER" == "dnf" ]]; then
-        alias update="sudo dnf update"
+        alias upd="sudo dnf update"
         alias upgrade="sudo dnf upgrade"
         alias install="sudo dnf install"
         alias search="dnf search"
@@ -584,7 +613,7 @@ if [[ "$DETECTED_OS" == "fedora" || "$DETECTED_OS" == "rhel" ]]; then
         alias installed="dnf list installed"
         alias available="dnf list available"
     else
-        alias update="sudo yum update"
+        alias upd="sudo yum update"
         alias upgrade="sudo yum upgrade"
         alias install="sudo yum install"
         alias search="yum search"
@@ -644,7 +673,7 @@ if [[ "$DETECTED_OS" == "opensuse" ]]; then
     alias install='sudo zypper install'
     alias remove='sudo zypper remove'
     alias search='zypper search'
-    alias update='sudo zypper update'
+    alias upd='sudo zypper update'
     alias upgrade='sudo zypper dup'
     alias refresh='sudo zypper refresh'
     
@@ -685,11 +714,11 @@ if [[ "$DETECTED_OS" == "opensuse" ]]; then
 fi
 
 # ============================================================================
-# ARCH LINUX SPECIFIC ALIASES
+# ARCH LINUX / CACHYOS SPECIFIC ALIASES
 # ============================================================================
 if [[ "$DETECTED_OS" == "arch" ]]; then
     # Pacman package management
-    alias update="sudo pacman -Sy"
+    alias upd="sudo pacman -Sy"
     alias upgrade="sudo pacman -Syu"
     alias install="sudo pacman -S"
     alias search="pacman -Ss"
@@ -727,6 +756,35 @@ if [[ "$DETECTED_OS" == "arch" ]]; then
     alias logsboot="sudo journalctl -b"
     alias logserr="sudo journalctl -p err"
     alias logsservice="sudo journalctl -u"
+    
+    # CachyOS specific optimizations
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        # CachyOS kernel management
+        alias kernel-list="pacman -Q | grep -E '(linux|kernel)'"
+        alias kernel-install="sudo pacman -S"
+        alias kernel-remove="sudo pacman -R"
+        
+        # CachyOS repository management
+        alias cachy-repo="sudo pacman -Sy cachyos-keyring cachyos-mirrorlist"
+        alias cachy-update="sudo pacman -Sy && sudo pacman -Su"
+        
+        # Performance monitoring (CachyOS optimized)
+        alias perf-cpu="sudo cpupower frequency-info"
+        alias perf-gov="sudo cpupower frequency-set -g"
+        alias perf-sched="cat /sys/kernel/debug/sched_features 2>/dev/null || echo 'Scheduler features not available'"
+        
+        # CachyOS specific tools
+        alias cachy-settings="cachyos-hello"
+        alias cachy-kernel-manager="cachyos-kernel-manager"
+        alias cachy-welcome="cachyos-hello"
+        
+        # Performance shortcuts
+        alias performance="sudo cpupower frequency-set -g performance && echo '🚀 Performance mode enabled'"
+        alias powersave="sudo cpupower frequency-set -g powersave && echo '🔋 Powersave mode enabled'"
+        alias balanced="sudo cpupower frequency-set -g schedutil && echo '⚖️  Balanced mode enabled'"
+        
+        echo "🚀 CachyOS-specific aliases loaded"
+    fi
 fi
 
 # ============================================================================
@@ -734,7 +792,7 @@ fi
 # ============================================================================
 if [[ "$DETECTED_OS" == "alpine" ]]; then
     # APK package management
-    alias update="sudo apk update"
+    alias upd="sudo apk update"
     alias upgrade="sudo apk upgrade"
     alias install="sudo apk add"
     alias search="apk search"
@@ -818,13 +876,21 @@ function weather() {
 # Enhanced system information with environment detection
 function sysinfo() {
     local icon
+    local distro_info=""
+    
     case $ENVIRONMENT in
         "container") icon="📦" ;;
         "macos") icon="🍎" ;;
-        *) icon="🐧" ;;
+        *) 
+            icon="🐧"
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                icon="🚀"
+                distro_info=" (CachyOS - Performance Optimized)"
+            fi
+            ;;
     esac
     
-    echo "$icon System Information ($ENVIRONMENT)"
+    echo "$icon System Information ($ENVIRONMENT)$distro_info"
     echo "================================"
     echo "OS: $(uname -s) $(uname -r)"
     echo "Architecture: $(uname -m)"
@@ -849,6 +915,17 @@ function sysinfo() {
     echo "Disk Usage:"
     df -h | head -5
     
+    # Add CachyOS specific info
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        echo "CachyOS Features:"
+        echo "  Kernel: $(uname -r)"
+        echo "  CPU Governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo 'N/A')"
+        echo "  Available Governors: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors 2>/dev/null || echo 'N/A')"
+        if command -v cpupower >/dev/null 2>&1; then
+            echo "  CPU Frequency: $(cpupower frequency-info | grep 'current CPU frequency' | awk '{print $4, $5}' 2>/dev/null || echo 'N/A')"
+        fi
+    fi
+    
     echo "Shell Tools:"
     echo "  ZSH: $(zsh --version 2>/dev/null || echo 'Not available')"
     echo "  Starship: $(starship --version 2>/dev/null | head -1 || echo 'Not available')"
@@ -864,6 +941,125 @@ function sysinfo() {
         echo "  bat: Not available"
     fi
 }
+
+# CachyOS Performance Functions
+if [[ "$IS_CACHYOS" == "true" ]]; then
+    # CPU Governor management
+    function set_performance() {
+        if command -v cpupower >/dev/null 2>&1; then
+            sudo cpupower frequency-set -g performance
+            echo "🚀 CPU governor set to performance mode"
+        else
+            echo "❌ cpupower not available"
+        fi
+    }
+    
+    function set_powersave() {
+        if command -v cpupower >/dev/null 2>&1; then
+            sudo cpupower frequency-set -g powersave
+            echo "🔋 CPU governor set to powersave mode"
+        else
+            echo "❌ cpupower not available"
+        fi
+    }
+    
+    function set_balanced() {
+        if command -v cpupower >/dev/null 2>&1; then
+            sudo cpupower frequency-set -g schedutil
+            echo "⚖️  CPU governor set to balanced mode (schedutil)"
+        else
+            echo "❌ cpupower not available"
+        fi
+    }
+    
+    function cpu_status() {
+        echo "🖥️  CPU Information:"
+        echo "=================="
+        if command -v cpupower >/dev/null 2>&1; then
+            cpupower frequency-info | grep -E "(current CPU|governor)"
+        else
+            echo "Current governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo 'N/A')"
+        fi
+        echo
+        echo "Available governors:"
+        cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors 2>/dev/null || echo "N/A"
+    }
+    
+    # Memory optimization
+    function clear_cache() {
+        echo "🧹 Clearing system caches..."
+        sudo sync
+        sudo sysctl vm.drop_caches=3
+        echo "✅ System caches cleared"
+    }
+    
+    # CachyOS kernel info
+    function kernel_info() {
+        echo "🔧 CachyOS Kernel Information:"
+        echo "============================="
+        echo "Current kernel: $(uname -r)"
+        echo
+        echo "Available kernels:"
+        pacman -Q | grep linux | grep -v linux-api-headers
+        echo
+        if command -v cpupower >/dev/null 2>&1; then
+            echo "CPU Power Management:"
+            cpupower frequency-info | grep -E "(driver|governor)" | head -2
+        fi
+    }
+    
+    # CachyOS Package Management Helpers
+    function cachy_install() {
+        if command -v yay >/dev/null 2>&1; then
+            yay -S "$@"
+        elif command -v paru >/dev/null 2>&1; then
+            paru -S "$@"
+        else
+            sudo pacman -S "$@"
+        fi
+    }
+    
+    # System maintenance
+    function cachy_maintenance() {
+        echo "🔧 Running CachyOS system maintenance..."
+        
+        # Update keyring first
+        echo "🔑 Updating CachyOS keyring..."
+        sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
+        
+        # Update system
+        echo "📦 Updating packages..."
+        sudo pacman -Syu
+        
+        # Clean package cache
+        echo "🧹 Cleaning package cache..."
+        sudo pacman -Sc --noconfirm
+        
+        # Remove orphaned packages
+        echo "🗑️  Removing orphaned packages..."
+        local orphans=$(pacman -Qtdq 2>/dev/null)
+        if [[ -n "$orphans" ]]; then
+            sudo pacman -Rns $orphans
+        else
+            echo "No orphaned packages found"
+        fi
+        
+        # Update file database
+        echo "📋 Updating file database..."
+        sudo updatedb 2>/dev/null || echo "updatedb not available"
+        
+        echo "✅ CachyOS maintenance completed!"
+    }
+    
+    # Aliases for CachyOS functions
+    alias cm='cachy_maintenance'
+    alias ci='cachy_install'
+    alias perf='set_performance'
+    alias power='set_powersave'
+    alias balanced='set_balanced'
+    alias cpustatus='cpu_status'
+    alias kernelinfo='kernel_info'
+fi
 
 # Find and kill process by name with fzf
 function killp() {
@@ -1140,7 +1336,11 @@ case $ENVIRONMENT in
         echo "🍎 macOS ZSH loaded successfully!"
         ;;
     *)
-        echo "🐧 Linux ZSH loaded successfully!"
+        if [[ "$IS_CACHYOS" == "true" ]]; then
+            echo "🚀 CachyOS ZSH loaded successfully!"
+        else
+            echo "🐧 Linux ZSH loaded successfully!"
+        fi
         ;;
 esac
 
@@ -1155,3 +1355,9 @@ fi
 
 echo "💡 Type 'sysinfo' for system info, 'sa' to reload config"
 echo "🔍 Type 'ah' for alias help, 'as <term>' to search aliases"
+if [[ "$IS_CACHYOS" == "true" ]]; then
+    echo "🚀 CachyOS: Type 'al cachyos' for performance commands"
+fi
+
+# Initialize FZF
+fzf_init
