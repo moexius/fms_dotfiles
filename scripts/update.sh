@@ -5,9 +5,45 @@
 
 set -e
 
-# ... (Keep your color definitions, logging functions, and detect_os function here)
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 DOTFILES_DIR="$HOME/.dotfiles"
+
+# Detect OS and package manager
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS="macos"
+        PACKAGE_MANAGER="brew"
+    elif [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        case $ID in
+            debian|ubuntu) OS="debian"; PACKAGE_MANAGER="apt" ;;
+            centos|rhel|rocky|almalinux) OS="rhel"; PACKAGE_MANAGER="yum" ;;
+            fedora) OS="fedora"; PACKAGE_MANAGER="dnf" ;;
+            opensuse*|sles) OS="opensuse"; PACKAGE_MANAGER="zypper" ;;
+            arch|manjaro) OS="arch"; PACKAGE_MANAGER="pacman" ;;
+            cachyos) OS="arch"; PACKAGE_MANAGER="pacman"; IS_CACHYOS="true" ;;
+            alpine) OS="alpine"; PACKAGE_MANAGER="apk" ;;
+            *) OS="unknown"; PACKAGE_MANAGER="unknown" ;;
+        esac
+    else
+        OS="unknown"
+        PACKAGE_MANAGER="unknown"
+    fi
+    log_info "Detected OS: $OS with package manager: $PACKAGE_MANAGER"
+}
 
 check_dotfiles_dir() {
     if [[ ! -d "$DOTFILES_DIR" ]]; then
@@ -37,16 +73,16 @@ update_configs() {
     # Ensure target directories exist
     mkdir -p "$HOME/.config" "$backup_dir"
 
-    # Backup & Copy zshrc
+    # Backup & Copy zshrc (Only backup if it's a real file, not a symlink)
     if [[ -f "$DOTFILES_DIR/configs/zsh/zshrc" ]]; then
-        [[ -f "$HOME/.zshrc" ]] && mv "$HOME/.zshrc" "$backup_dir/"
+        [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]] && mv "$HOME/.zshrc" "$backup_dir/"
         ln -sf "$DOTFILES_DIR/configs/zsh/zshrc" "$HOME/.zshrc"
         ((updated++))
     fi
 
-    # Backup & Copy Starship
+    # Backup & Copy Starship (Only backup if it's a real file, not a symlink)
     if [[ -f "$DOTFILES_DIR/configs/starship.toml" ]]; then
-        [[ -f "$HOME/.config/starship.toml" ]] && mv "$HOME/.config/starship.toml" "$backup_dir/"
+        [[ -f "$HOME/.config/starship.toml" && ! -L "$HOME/.config/starship.toml" ]] && mv "$HOME/.config/starship.toml" "$backup_dir/"
         ln -sf "$DOTFILES_DIR/configs/starship.toml" "$HOME/.config/starship.toml"
         ((updated++))
     fi
@@ -56,20 +92,93 @@ update_configs() {
     log_success "$updated core configuration files linked."
 }
 
-# ... (Keep your update_tools and show_summary functions here)
+update_tools() {
+    log_info "Checking for tool updates..."
+    case $OS in
+        macos)
+            if command -v brew >/dev/null 2>&1; then
+                brew update && brew upgrade
+            fi
+            ;;
+        debian) sudo apt update && sudo apt upgrade -y ;;
+        fedora|rhel)
+            if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then sudo dnf update -y; else sudo yum update -y; fi
+            ;;
+        opensuse) sudo zypper refresh && sudo zypper update -y ;;
+        arch)
+            [[ "$IS_CACHYOS" == "true" ]] && sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
+            sudo pacman -Syu --noconfirm
+            ;;
+        alpine) sudo apk update && sudo apk upgrade ;;
+    esac
+    log_success "System packages updated"
+}
+
+show_summary() {
+    echo -e "${CYAN}"
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║                     Update Complete!                         ║"
+    echo "║                                                              ║"
+    echo "║  ✅ Dotfiles repository updated                              ║"
+    echo "║  ✅ Configuration files symlinked                            ║"
+    echo "║                                                              ║"
+    echo "║  Next steps:                                                 ║"
+    echo "║  1. Run 'source ~/.zshrc' if not automatically reloaded      ║"
+    echo "║  2. Enjoy your modular dotfiles!                             ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+}
 
 main() {
-    # ... (Keep your arg parsing and confirmation logic here)
+    local update_tools_flag=false
+    local force_update=false
+    
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --tools|-t)
+                update_tools_flag=true
+                shift
+                ;;
+            --force|-f)
+                force_update=true
+                shift
+                ;;
+            --help|-h)
+                echo "Usage: $0 [OPTIONS]"
+                echo "  -t, --tools    Also update system tools and packages"
+                echo "  -f, --force    Force update without confirmation"
+                exit 0
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+    done
+    
+    if [[ "$force_update" != true ]]; then
+        read -p "Do you want to continue with the update? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Update cancelled"
+            exit 0
+        fi
+    fi
     
     detect_os
     check_dotfiles_dir
     update_repository
     update_configs
     
-    if [[ "$update_tools_flag" == true ]]; then update_tools; fi
+    if [[ "$update_tools_flag" == true ]]; then
+        update_tools
+    fi
+    
     show_summary
     
+    # Reload zsh
     if [[ -n "$ZSH_VERSION" ]]; then
+        log_info "Reloading ZSH configuration..."
         source ~/.zshrc
     fi
 }
