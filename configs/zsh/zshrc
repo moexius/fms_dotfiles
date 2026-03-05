@@ -1,0 +1,50 @@
+#!/usr/bin/env zsh
+# ============================================================================
+# ZSH Configuration File - Universal Dotfiles (Modular)
+# ============================================================================
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+export FUNCNEST=1000000
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# macOS specific paths (Fixed hardcoded /Users/$USER path)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+    export PATH="$PATH:$HOME/.lmstudio/bin"
+fi
+
+export EDITOR="nvim"
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+
+# ============================================================================
+# ZSH OPTIONS
+# ============================================================================
+setopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY APPEND_HISTORY
+setopt INC_APPEND_HISTORY HIST_REDUCE_BLANKS HIST_VERIFY
+setopt AUTO_CD CORRECT NO_CASE_GLOB NUMERIC_GLOB_SORT
+
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+
+# ============================================================================
+# LOAD MODULES
+# ============================================================================
+ZSH_CONFIG_DIR="$HOME/.dotfiles/configs/zsh"
+
+source "$ZSH_CONFIG_DIR/os_specific.zsh"
+source "$ZSH_CONFIG_DIR/plugins.zsh"
+source "$ZSH_CONFIG_DIR/aliases.zsh"
+source "$ZSH_CONFIG_DIR/functions.zsh"
+
+# ============================================================================
+# PRIVATE CUSTOMIZATIONS
+# ============================================================================
+PRIVATE_ALIASES_FILE="$HOME/.zsh_private_aliases"
+if [[ -f "$PRIVATE_ALIASES_FILE" && -r "$PRIVATE_ALIASES_FILE" ]]; then
+    source "$PRIVATE_ALIASES_FILE"
+fi
