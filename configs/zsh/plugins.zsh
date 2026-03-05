@@ -58,8 +58,15 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
 
 if command -v fzf >/dev/null 2>&1; then
-    eval "$(fzf --zsh)"
-    [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+    # Completely silence the test. If it succeeds, run it.
+    if fzf --zsh >/dev/null 2>&1; then
+        eval "$(fzf --zsh)"
+    else
+        # Fallback for older versions
+        [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh 2>/dev/null
+        [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh 2>/dev/null
+        [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh 2>/dev/null
+    fi
 fi
 
 # ============================================================================
