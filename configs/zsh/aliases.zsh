@@ -66,7 +66,7 @@ alias h="cd ~"
 alias c="clear"
 alias cls="clear"
 
-if command -v lsd >/dev/null 2>&1; then [cite: 74]
+if command -v lsd >/dev/null 2>&1; then
     alias ls="lsd"
     alias l="lsd -la"
     alias ll="lsd -l"
@@ -74,7 +74,7 @@ if command -v lsd >/dev/null 2>&1; then [cite: 74]
     alias lt="lsd --tree"
     alias lsize="lsd -lS"
 else
-    if [[ "$ENVIRONMENT" == "macos" ]]; then [cite: 75]
+    if [[ "$ENVIRONMENT" == "macos" ]]; then
         alias ls="ls -G"
         alias l="ls -la -G"
         alias ll="ls -l -G"
@@ -85,410 +85,410 @@ else
         alias ll="ls -l --color=auto"
         alias la="ls -la --color=auto"
     fi
-    alias lsize="ls -lhS" [cite: 76]
+    alias lsize="ls -lhS"
 fi
 
-alias mkdir='mkdir -pv' [cite: 76]
-alias cp='cp -iv' [cite: 76]
-alias mv='mv -iv' [cite: 76]
-alias rm='rm -iv' [cite: 76]
-alias rmf='rm -rf' [cite: 76]
-alias ln='ln -iv' [cite: 76]
+alias mkdir='mkdir -pv'
+alias cp='cp -iv'
+alias mv='mv -iv'
+alias rm='rm -iv'
+alias rmf='rm -rf'
+alias ln='ln -iv'
 
-alias grep='grep --color=auto' [cite: 76]
-alias fgrep='fgrep --color=auto' [cite: 76]
-alias egrep='egrep --color=auto' [cite: 76]
-alias h='history' [cite: 76]
-alias hgrep='history | grep' [cite: 76, 77]
-alias count='sort | uniq -c | sort -nr' [cite: 77]
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias h='history'
+alias hgrep='history | grep'
+alias count='sort | uniq -c | sort -nr'
 
 # ============================================================================
 # UNIVERSAL ALIASES - SYSTEM MONITORING
 # ============================================================================
-alias df="df -h" [cite: 77]
-alias du="du -h" [cite: 77]
-alias dus='du -sh * | sort -hr' [cite: 77, 78]
-alias free='free -h' [cite: 78]
-alias ps='ps aux' [cite: 78]
-alias psg='ps aux | grep -v grep | grep -i' [cite: 78]
-alias topcpu='ps auxf | sort -nr -k 3 | head -10' [cite: 78, 79]
-alias topmem='ps auxf | sort -nr -k 4 | head -10' [cite: 79, 80]
+alias df="df -h"
+alias du="du -h"
+alias dus='du -sh * | sort -hr'
+alias free='free -h'
+alias ps='ps aux'
+alias psg='ps aux | grep -v grep | grep -i'
+alias topcpu='ps auxf | sort -nr -k 3 | head -10'
+alias topmem='ps auxf | sort -nr -k 4 | head -10'
 
-if [[ "$ENVIRONMENT" == "macos" ]]; then [cite: 80]
-    alias cpu="top -o cpu" [cite: 81]
-    alias mem="top -o mem" [cite: 81]
-    alias ports="lsof -i -P -n | grep LISTEN" [cite: 81]
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    alias cpu="top -o cpu"
+    alias mem="top -o mem"
+    alias ports="lsof -i -P -n | grep LISTEN"
 else
-    alias cpu="top -o %CPU" [cite: 81]
-    alias mem="top -o %MEM" [cite: 81]
-    alias ports="ss -tuln" [cite: 81]
+    alias cpu="top -o %CPU"
+    alias mem="top -o %MEM"
+    alias ports="ss -tuln"
 fi
 
 # ============================================================================
 # UNIVERSAL ALIASES - NETWORK
 # ============================================================================
-alias ping="ping -c 5" [cite: 81]
-alias myip="curl -s https://icanhazip.com && echo" [cite: 81]
+alias ping="ping -c 5"
+alias myip="curl -s [https://icanhazip.com](https://icanhazip.com) && echo"
 
-if [[ "$ENVIRONMENT" == "macos" ]]; then [cite: 81]
-    alias localip="ipconfig getifaddr en0" [cite: 82]
-    alias rwlan="networksetup -setairportpower en0 off && networksetup -setairportpower en0 on" [cite: 82]
+if [[ "$ENVIRONMENT" == "macos" ]]; then
+    alias localip="ipconfig getifaddr en0"
+    alias rwlan="networksetup -setairportpower en0 off && networksetup -setairportpower en0 on"
 else
-    alias localip="hostname -I | awk '{print \$1}'" [cite: 82]
+    alias localip="hostname -I | awk '{print \$1}'"
 fi
 
-alias listening='netstat -tlnp' [cite: 82]
-alias connections='netstat -an' [cite: 82]
+alias listening='netstat -tlnp'
+alias connections='netstat -an'
 
 # ============================================================================
 # UNIVERSAL ALIASES - DEVELOPMENT
 # ============================================================================
-if command -v bat >/dev/null 2>&1; then [cite: 82]
-    alias b="bat" [cite: 83]
-elif command -v batcat >/dev/null 2>&1; then [cite: 83]
-    alias b="batcat" [cite: 84]
+if command -v bat >/dev/null 2>&1; then
+    alias b="bat"
+elif command -v batcat >/dev/null 2>&1; then
+    alias b="batcat"
 else
-    alias b="cat" [cite: 84]
+    alias b="cat"
 fi
 
-alias t="tldr" [cite: 84]
-alias f="fzf" [cite: 84]
+alias t="tldr"
+alias f="fzf"
 
-alias g="git" [cite: 84]
-alias gs="git status" [cite: 84]
-alias ga="git add" [cite: 84]
-alias gaa="git add --all" [cite: 84]
-alias gc="git commit" [cite: 84]
-alias gcm="git commit -m" [cite: 84]
-alias gp="git push" [cite: 84]
-alias gpl="git pull" [cite: 84]
-alias gl="git log --oneline" [cite: 84]
-alias gd="git diff" [cite: 84]
-alias gb="git branch" [cite: 84]
-alias gco="git checkout" [cite: 84]
-alias gcb="git checkout -b" [cite: 84]
-alias gm="git merge" [cite: 84]
-alias gr="git remote -v" [cite: 84]
-alias gf="git fetch" [cite: 84]
+alias g="git"
+alias gs="git status"
+alias ga="git add"
+alias gaa="git add --all"
+alias gc="git commit"
+alias gcm="git commit -m"
+alias gp="git push"
+alias gpl="git pull"
+alias gl="git log --oneline"
+alias gd="git diff"
+alias gb="git branch"
+alias gco="git checkout"
+alias gcb="git checkout -b"
+alias gm="git merge"
+alias gr="git remote -v"
+alias gf="git fetch"
 
-alias py='python3' [cite: 84]
-alias pip='pip3' [cite: 84]
-alias serve='python3 -m http.server' [cite: 84]
-alias json='python3 -m json.tool' [cite: 84]
-alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"' [cite: 84]
-alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"' [cite: 84]
+alias py='python3'
+alias pip='pip3'
+alias serve='python3 -m http.server'
+alias json='python3 -m json.tool'
+alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
+alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
 
-alias zshrc="$EDITOR ~/.zshrc" [cite: 84]
-alias starshipconfig="$EDITOR ~/.config/starship.toml" [cite: 84]
-alias starship-config="$EDITOR ~/.config/starship.toml" [cite: 84]
+alias zshrc="$EDITOR ~/.zshrc"
+alias starshipconfig="$EDITOR ~/.config/starship.toml"
+alias starship-config="$EDITOR ~/.config/starship.toml"
 
 # ============================================================================
 # MACOS SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "macos" ]]; then [cite: 84]
-    alias bo="brew outdated && echo '\nRun bg to upgrade all packages'" [cite: 85]
-    alias bu="brew update" [cite: 85]
-    alias bg="brew upgrade" [cite: 85]
-    alias bi="brew install" [cite: 85]
-    alias bs="brew search" [cite: 85]
-    alias bl="brew list" [cite: 85]
-    alias bc="brew cleanup" [cite: 85]
-    alias buc="brew update && brew cleanup" [cite: 85]
-    alias binfo="brew info" [cite: 85]
-    alias bdeps="brew deps --tree" [cite: 85]
-    alias bservices="brew services list" [cite: 85]
-    alias bstart="brew services start" [cite: 85]
-    alias bstop="brew services stop" [cite: 85]
-    alias brestart="brew services restart" [cite: 86]
+if [[ "$DETECTED_OS" == "macos" ]]; then
+    alias bo="brew outdated && echo '\nRun bg to upgrade all packages'"
+    alias bu="brew update"
+    alias bg="brew upgrade"
+    alias bi="brew install"
+    alias bs="brew search"
+    alias bl="brew list"
+    alias bc="brew cleanup"
+    alias buc="brew update && brew cleanup"
+    alias binfo="brew info"
+    alias bdeps="brew deps --tree"
+    alias bservices="brew services list"
+    alias bstart="brew services start"
+    alias bstop="brew services stop"
+    alias brestart="brew services restart"
     
-    alias hosts="sudo $EDITOR /etc/hosts" [cite: 86]
-    alias vimrc="$EDITOR ~/.vimrc" [cite: 86]
-    alias flush="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder" [cite: 86]
-    alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder" [cite: 86]
-    alias showfiles="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder" [cite: 86]
-    alias hidefiles="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder" [cite: 86]
-    alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder" [cite: 86]
-    alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder" [cite: 87]
+    alias hosts="sudo $EDITOR /etc/hosts"
+    alias vimrc="$EDITOR ~/.vimrc"
+    alias flush="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
+    alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
+    alias showfiles="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
+    alias hidefiles="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
+    alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
+    alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
     
-    alias safari="open -a Safari" [cite: 87]
-    alias firefox="open -a Firefox" [cite: 87]
-    alias chrome="open -a 'Google Chrome'" [cite: 87]
-    alias finder="open -a Finder" [cite: 87]
-    alias preview="open -a Preview" [cite: 87]
+    alias safari="open -a Safari"
+    alias firefox="open -a Firefox"
+    alias chrome="open -a 'Google Chrome'"
+    alias finder="open -a Finder"
+    alias preview="open -a Preview"
     
-    alias startgp="launchctl load /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*" [cite: 87]
-    alias stopgp="launchctl unload /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*" [cite: 87]
-    alias ts="/Applications/Tailscale.app/Contents/MacOS/Tailscale" [cite: 87]
+    alias startgp="launchctl load /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*"
+    alias stopgp="launchctl unload /Library/LaunchAgents/com.paloaltonetworks.gp.pangp*"
+    alias ts="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
     
-    alias battery="pmset -g batt" [cite: 88]
-    alias sleep="pmset sleepnow" [cite: 88]
-    alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend" [cite: 88]
-    alias screensaver="open -a ScreenSaverEngine" [cite: 88]
+    alias battery="pmset -g batt"
+    alias sleep="pmset sleepnow"
+    alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+    alias screensaver="open -a ScreenSaverEngine"
 fi
 
 # ============================================================================
 # DEBIAN/UBUNTU SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "debian" ]]; then [cite: 88]
-    alias upd="sudo apt update" [cite: 89]
-    alias upgrade="sudo apt upgrade" [cite: 89]
-    alias install="sudo apt install" [cite: 89]
-    alias search="apt search" [cite: 89]
-    alias show="apt show" [cite: 89]
-    alias remove="sudo apt remove" [cite: 89]
-    alias autoremove="sudo apt autoremove" [cite: 89]
-    alias purge="sudo apt purge" [cite: 89]
-    alias clean="sudo apt clean && sudo apt autoclean" [cite: 89]
-    alias installed="apt list --installed" [cite: 89]
-    alias upgradable="apt list --upgradable" [cite: 89]
+if [[ "$DETECTED_OS" == "debian" ]]; then
+    alias upd="sudo apt update"
+    alias upgrade="sudo apt upgrade"
+    alias install="sudo apt install"
+    alias search="apt search"
+    alias show="apt show"
+    alias remove="sudo apt remove"
+    alias autoremove="sudo apt autoremove"
+    alias purge="sudo apt purge"
+    alias clean="sudo apt clean && sudo apt autoclean"
+    alias installed="apt list --installed"
+    alias upgradable="apt list --upgradable"
     
-    alias sstart="sudo systemctl start" [cite: 90]
-    alias sstop="sudo systemctl stop" [cite: 90]
-    alias srestart="sudo systemctl restart" [cite: 90]
-    alias sstatus="systemctl status" [cite: 90]
-    alias senable="sudo systemctl enable" [cite: 90]
-    alias sdisable="sudo systemctl disable" [cite: 90]
-    alias sreload="sudo systemctl reload" [cite: 90]
-    alias slist="systemctl list-units --type=service" [cite: 90]
-    alias sfailed="systemctl --failed" [cite: 90]
+    alias sstart="sudo systemctl start"
+    alias sstop="sudo systemctl stop"
+    alias srestart="sudo systemctl restart"
+    alias sstatus="systemctl status"
+    alias senable="sudo systemctl enable"
+    alias sdisable="sudo systemctl disable"
+    alias sreload="sudo systemctl reload"
+    alias slist="systemctl list-units --type=service"
+    alias sfailed="systemctl --failed"
     
-    alias logs="sudo journalctl -f" [cite: 90]
-    alias logsboot="sudo journalctl -b" [cite: 90]
-    alias logserr="sudo journalctl -p err" [cite: 90]
-    alias logsservice="sudo journalctl -u" [cite: 90]
+    alias logs="sudo journalctl -f"
+    alias logsboot="sudo journalctl -b"
+    alias logserr="sudo journalctl -p err"
+    alias logsservice="sudo journalctl -u"
     
-    alias sources="sudo $EDITOR /etc/apt/sources.list" [cite: 91]
-    alias fstab="sudo $EDITOR /etc/fstab" [cite: 91]
-    alias ufw="sudo ufw" [cite: 91]
-    alias ufwstatus="sudo ufw status" [cite: 91]
+    alias sources="sudo $EDITOR /etc/apt/sources.list"
+    alias fstab="sudo $EDITOR /etc/fstab"
+    alias ufw="sudo ufw"
+    alias ufwstatus="sudo ufw status"
 fi
 
 # ============================================================================
 # FEDORA/RHEL SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "fedora" || "$DETECTED_OS" == "rhel" ]]; then [cite: 91, 92]
-    if [[ "$PKG_MANAGER" == "dnf" ]]; then [cite: 92]
-        alias upd="sudo dnf update" [cite: 93]
-        alias upgrade="sudo dnf upgrade" [cite: 93]
-        alias install="sudo dnf install" [cite: 93]
-        alias search="dnf search" [cite: 93]
-        alias info="dnf info" [cite: 93]
-        alias remove="sudo dnf remove" [cite: 93]
-        alias autoremove="sudo dnf autoremove" [cite: 93]
-        alias clean="sudo dnf clean all" [cite: 93]
-        alias history="dnf history" [cite: 93]
-        alias installed="dnf list installed" [cite: 94]
-        alias available="dnf list available" [cite: 94]
+if [[ "$DETECTED_OS" == "fedora" || "$DETECTED_OS" == "rhel" ]]; then
+    if [[ "$PKG_MANAGER" == "dnf" ]]; then
+        alias upd="sudo dnf update"
+        alias upgrade="sudo dnf upgrade"
+        alias install="sudo dnf install"
+        alias search="dnf search"
+        alias info="dnf info"
+        alias remove="sudo dnf remove"
+        alias autoremove="sudo dnf autoremove"
+        alias clean="sudo dnf clean all"
+        alias history="dnf history"
+        alias installed="dnf list installed"
+        alias available="dnf list available"
     else
-        alias upd="sudo yum update" [cite: 94]
-        alias upgrade="sudo yum upgrade" [cite: 94]
-        alias install="sudo yum install" [cite: 94]
-        alias search="yum search" [cite: 94]
-        alias info="yum info" [cite: 94]
-        alias remove="sudo yum remove" [cite: 94]
-        alias clean="sudo yum clean all" [cite: 94]
-        alias history="yum history" [cite: 95]
-        alias installed="yum list installed" [cite: 95]
-        alias available="yum list available" [cite: 95]
+        alias upd="sudo yum update"
+        alias upgrade="sudo yum upgrade"
+        alias install="sudo yum install"
+        alias search="yum search"
+        alias info="yum info"
+        alias remove="sudo yum remove"
+        alias clean="sudo yum clean all"
+        alias history="yum history"
+        alias installed="yum list installed"
+        alias available="yum list available"
     fi
     
-    alias sstart="sudo systemctl start" [cite: 95]
-    alias sstop="sudo systemctl stop" [cite: 95]
-    alias srestart="sudo systemctl restart" [cite: 95]
-    alias sstatus="systemctl status" [cite: 95]
-    alias senable="sudo systemctl enable" [cite: 95]
-    alias sdisable="sudo systemctl disable" [cite: 95]
-    alias sreload="sudo systemctl reload" [cite: 95]
-    alias slist="systemctl list-units --type=service" [cite: 96]
-    alias sfailed="systemctl --failed" [cite: 96]
+    alias sstart="sudo systemctl start"
+    alias sstop="sudo systemctl stop"
+    alias srestart="sudo systemctl restart"
+    alias sstatus="systemctl status"
+    alias senable="sudo systemctl enable"
+    alias sdisable="sudo systemctl disable"
+    alias sreload="sudo systemctl reload"
+    alias slist="systemctl list-units --type=service"
+    alias sfailed="systemctl --failed"
     
-    alias logs="sudo journalctl -f" [cite: 96]
-    alias logsboot="sudo journalctl -b" [cite: 96]
-    alias logserr="sudo journalctl -p err" [cite: 96]
-    alias logsservice="sudo journalctl -u" [cite: 96]
+    alias logs="sudo journalctl -f"
+    alias logsboot="sudo journalctl -b"
+    alias logserr="sudo journalctl -p err"
+    alias logsservice="sudo journalctl -u"
     
-    alias fwstatus="sudo firewall-cmd --state" [cite: 96]
-    alias fwlist="sudo firewall-cmd --list-all" [cite: 96]
-    alias fwreload="sudo firewall-cmd --reload" [cite: 96]
+    alias fwstatus="sudo firewall-cmd --state"
+    alias fwlist="sudo firewall-cmd --list-all"
+    alias fwreload="sudo firewall-cmd --reload"
 fi
 
 # ============================================================================
 # OPENSUSE SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "opensuse" ]]; then [cite: 96]
-    alias zr='sudo zypper refresh' [cite: 97]
-    alias zu='sudo zypper update' [cite: 97]
-    alias zup='sudo zypper dup' [cite: 97]
-    alias zi='sudo zypper install' [cite: 97]
-    alias zs='zypper search' [cite: 97]
-    alias zinfo='zypper info' [cite: 97]
-    alias zrm='sudo zypper remove' [cite: 97]
-    alias zps='zypper ps' [cite: 97]
-    alias zpatches='sudo zypper patches' [cite: 97]
-    alias zpatch='sudo zypper patch' [cite: 97]
-    alias zrepos='zypper repos' [cite: 97]
-    alias zaddrepo='sudo zypper addrepo' [cite: 97]
-    alias zremoverepo='sudo zypper removerepo' [cite: 97]
-    alias zclean='sudo zypper clean' [cite: 97, 98]
-    alias zhistory='zypper history' [cite: 98]
+if [[ "$DETECTED_OS" == "opensuse" ]]; then
+    alias zr='sudo zypper refresh'
+    alias zu='sudo zypper update'
+    alias zup='sudo zypper dup'
+    alias zi='sudo zypper install'
+    alias zs='zypper search'
+    alias zinfo='zypper info'
+    alias zrm='sudo zypper remove'
+    alias zps='zypper ps'
+    alias zpatches='sudo zypper patches'
+    alias zpatch='sudo zypper patch'
+    alias zrepos='zypper repos'
+    alias zaddrepo='sudo zypper addrepo'
+    alias zremoverepo='sudo zypper removerepo'
+    alias zclean='sudo zypper clean'
+    alias zhistory='zypper history'
     
-    alias install='sudo zypper install' [cite: 98]
-    alias remove='sudo zypper remove' [cite: 98]
-    alias search='zypper search' [cite: 98]
-    alias upd='sudo zypper update' [cite: 98]
-    alias upgrade='sudo zypper dup' [cite: 98]
-    alias refresh='sudo zypper refresh' [cite: 98]
+    alias install='sudo zypper install'
+    alias remove='sudo zypper remove'
+    alias search='zypper search'
+    alias upd='sudo zypper update'
+    alias upgrade='sudo zypper dup'
+    alias refresh='sudo zypper refresh'
     
-    alias sstart='sudo systemctl start' [cite: 98]
-    alias sstop='sudo systemctl stop' [cite: 98]
-    alias srestart='sudo systemctl restart' [cite: 98]
-    alias sstatus='systemctl status' [cite: 98]
-    alias senable='sudo systemctl enable' [cite: 99]
-    alias sdisable='sudo systemctl disable' [cite: 99]
-    alias sreload='sudo systemctl reload' [cite: 99]
-    alias slist='systemctl list-units --type=service' [cite: 99]
-    alias sfailed='systemctl --failed' [cite: 99]
+    alias sstart='sudo systemctl start'
+    alias sstop='sudo systemctl stop'
+    alias srestart='sudo systemctl restart'
+    alias sstatus='systemctl status'
+    alias senable='sudo systemctl enable'
+    alias sdisable='sudo systemctl disable'
+    alias sreload='sudo systemctl reload'
+    alias slist='systemctl list-units --type=service'
+    alias sfailed='systemctl --failed'
     
-    alias logs='sudo journalctl -f' [cite: 99]
-    alias logsboot='sudo journalctl -b' [cite: 99]
-    alias logserr='sudo journalctl -p err' [cite: 99]
-    alias logsservice='sudo journalctl -u' [cite: 99]
+    alias logs='sudo journalctl -f'
+    alias logsboot='sudo journalctl -b'
+    alias logserr='sudo journalctl -p err'
+    alias logsservice='sudo journalctl -u'
     
-    alias yast='sudo yast2' [cite: 99]
-    alias yastnet='sudo yast2 lan' [cite: 99]
-    alias yastuser='sudo yast2 users' [cite: 99]
-    alias yastsoft='sudo yast2 sw_single' [cite: 100]
-    alias yastboot='sudo yast2 bootloader' [cite: 100]
+    alias yast='sudo yast2'
+    alias yastnet='sudo yast2 lan'
+    alias yastuser='sudo yast2 users'
+    alias yastsoft='sudo yast2 sw_single'
+    alias yastboot='sudo yast2 bootloader'
     
-    alias snaplist='sudo snapper list' [cite: 100]
-    alias snapcreate='sudo snapper create -d' [cite: 100]
-    alias snapdelete='sudo snapper delete' [cite: 100]
-    alias snapstatus='sudo snapper status' [cite: 100]
+    alias snaplist='sudo snapper list'
+    alias snapcreate='sudo snapper create -d'
+    alias snapdelete='sudo snapper delete'
+    alias snapstatus='sudo snapper status'
     
-    alias fwstatus='sudo firewall-cmd --state' [cite: 100]
-    alias fwlist='sudo firewall-cmd --list-all' [cite: 100]
-    alias fwreload='sudo firewall-cmd --reload' [cite: 100]
+    alias fwstatus='sudo firewall-cmd --state'
+    alias fwlist='sudo firewall-cmd --list-all'
+    alias fwreload='sudo firewall-cmd --reload'
 fi
 
 # ============================================================================
 # ARCH LINUX / CACHYOS SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "arch" ]]; then [cite: 100]
-    alias upd="sudo pacman -Sy" [cite: 101]
-    alias upgrade="sudo pacman -Syu" [cite: 101]
-    alias install="sudo pacman -S" [cite: 101]
-    alias search="pacman -Ss" [cite: 101]
-    alias info="pacman -Si" [cite: 101]
-    alias remove="sudo pacman -R" [cite: 101]
-    alias removeall="sudo pacman -Rns" [cite: 101]
-    alias clean="sudo pacman -Sc" [cite: 101]
-    alias cleanall="sudo pacman -Scc" [cite: 101]
-    alias installed="pacman -Q" [cite: 101]
-    alias orphans="pacman -Qdt" [cite: 101]
-    alias removeorphans="sudo pacman -Rns \$(pacman -Qtdq)" [cite: 101]
+if [[ "$DETECTED_OS" == "arch" ]]; then
+    alias upd="sudo pacman -Sy"
+    alias upgrade="sudo pacman -Syu"
+    alias install="sudo pacman -S"
+    alias search="pacman -Ss"
+    alias info="pacman -Si"
+    alias remove="sudo pacman -R"
+    alias removeall="sudo pacman -Rns"
+    alias clean="sudo pacman -Sc"
+    alias cleanall="sudo pacman -Scc"
+    alias installed="pacman -Q"
+    alias orphans="pacman -Qdt"
+    alias removeorphans="sudo pacman -Rns \$(pacman -Qtdq)"
     
-    if command -v yay >/dev/null 2>&1; then [cite: 102]
-        alias yayupdate="yay -Syu" [cite: 103]
-        alias yayinstall="yay -S" [cite: 103]
-        alias yaysearch="yay -Ss" [cite: 103]
-        alias yayremove="yay -R" [cite: 103]
-        alias yayclean="yay -Sc" [cite: 103]
+    if command -v yay >/dev/null 2>&1; then
+        alias yayupdate="yay -Syu"
+        alias yayinstall="yay -S"
+        alias yaysearch="yay -Ss"
+        alias yayremove="yay -R"
+        alias yayclean="yay -Sc"
     fi
     
-    alias sstart="sudo systemctl start" [cite: 103]
-    alias sstop="sudo systemctl stop" [cite: 103]
-    alias srestart="sudo systemctl restart" [cite: 103]
-    alias sstatus="systemctl status" [cite: 103]
-    alias senable="sudo systemctl enable" [cite: 103]
-    alias sdisable="sudo systemctl disable" [cite: 104]
-    alias sreload="sudo systemctl reload" [cite: 104]
-    alias slist="systemctl list-units --type=service" [cite: 104]
-    alias sfailed="systemctl --failed" [cite: 104]
+    alias sstart="sudo systemctl start"
+    alias sstop="sudo systemctl stop"
+    alias srestart="sudo systemctl restart"
+    alias sstatus="systemctl status"
+    alias senable="sudo systemctl enable"
+    alias sdisable="sudo systemctl disable"
+    alias sreload="sudo systemctl reload"
+    alias slist="systemctl list-units --type=service"
+    alias sfailed="systemctl --failed"
     
-    alias logs="sudo journalctl -f" [cite: 104]
-    alias logsboot="sudo journalctl -b" [cite: 104]
-    alias logserr="sudo journalctl -p err" [cite: 104]
-    alias logsservice="sudo journalctl -u" [cite: 104]
+    alias logs="sudo journalctl -f"
+    alias logsboot="sudo journalctl -b"
+    alias logserr="sudo journalctl -p err"
+    alias logsservice="sudo journalctl -u"
     
-    if [[ "$IS_CACHYOS" == "true" ]]; then [cite: 104]
-        alias kernel-list="pacman -Q | grep -E '(linux|kernel)'" [cite: 105]
-        alias kernel-install="sudo pacman -S" [cite: 105]
-        alias kernel-remove="sudo pacman -R" [cite: 105]
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        alias kernel-list="pacman -Q | grep -E '(linux|kernel)'"
+        alias kernel-install="sudo pacman -S"
+        alias kernel-remove="sudo pacman -R"
         
-        alias cachy-repo="sudo pacman -Sy cachyos-keyring cachyos-mirrorlist" [cite: 105]
-        alias cachy-update="sudo pacman -Sy && sudo pacman -Su" [cite: 105]
+        alias cachy-repo="sudo pacman -Sy cachyos-keyring cachyos-mirrorlist"
+        alias cachy-update="sudo pacman -Sy && sudo pacman -Su"
         
-        alias perf-cpu="sudo cpupower frequency-info" [cite: 106]
-        alias perf-gov="sudo cpupower frequency-set -g" [cite: 106]
-        alias perf-sched="cat /sys/kernel/debug/sched_features 2>/dev/null || echo 'Scheduler features not available'" [cite: 106]
+        alias perf-cpu="sudo cpupower frequency-info"
+        alias perf-gov="sudo cpupower frequency-set -g"
+        alias perf-sched="cat /sys/kernel/debug/sched_features 2>/dev/null || echo 'Scheduler features not available'"
         
-        alias cachy-settings="cachyos-hello" [cite: 106]
-        alias cachy-kernel-manager="cachyos-kernel-manager" [cite: 106]
-        alias cachy-welcome="cachyos-hello" [cite: 106, 107]
+        alias cachy-settings="cachyos-hello"
+        alias cachy-kernel-manager="cachyos-kernel-manager"
+        alias cachy-welcome="cachyos-hello"
         
-        alias performance="sudo cpupower frequency-set -g performance && echo '🚀 Performance mode enabled'" [cite: 107]
-        alias powersave="sudo cpupower frequency-set -g powersave && echo '🔋 Powersave mode enabled'" [cite: 107]
-        alias balanced="sudo cpupower frequency-set -g schedutil && echo '⚖️  Balanced mode enabled'" [cite: 107]
+        alias performance="sudo cpupower frequency-set -g performance && echo '🚀 Performance mode enabled'"
+        alias powersave="sudo cpupower frequency-set -g powersave && echo '🔋 Powersave mode enabled'"
+        alias balanced="sudo cpupower frequency-set -g schedutil && echo '⚖️  Balanced mode enabled'"
     fi
 fi
 
 # ============================================================================
 # ALPINE LINUX SPECIFIC ALIASES
 # ============================================================================
-if [[ "$DETECTED_OS" == "alpine" ]]; then [cite: 108]
-    alias upd="sudo apk update" [cite: 109]
-    alias upgrade="sudo apk upgrade" [cite: 109]
-    alias install="sudo apk add" [cite: 109]
-    alias search="apk search" [cite: 109]
-    alias info="apk info" [cite: 109]
-    alias remove="sudo apk del" [cite: 109]
-    alias clean="sudo apk cache clean" [cite: 109]
-    alias installed="apk info -vv | sort" [cite: 109]
+if [[ "$DETECTED_OS" == "alpine" ]]; then
+    alias upd="sudo apk update"
+    alias upgrade="sudo apk upgrade"
+    alias install="sudo apk add"
+    alias search="apk search"
+    alias info="apk info"
+    alias remove="sudo apk del"
+    alias clean="sudo apk cache clean"
+    alias installed="apk info -vv | sort"
     
-    alias services="rc-status" [cite: 109]
-    alias addservice="sudo rc-update add" [cite: 109]
-    alias delservice="sudo rc-update del" [cite: 109]
-    alias startservice="sudo rc-service" [cite: 109]
-    alias stopservice="sudo rc-service" [cite: 110]
+    alias services="rc-status"
+    alias addservice="sudo rc-update add"
+    alias delservice="sudo rc-update del"
+    alias startservice="sudo rc-service"
+    alias stopservice="sudo rc-service"
 fi
 
 # ============================================================================
 # DOCKER & FLATPAK ALIASES
 # ============================================================================
-if command -v docker >/dev/null 2>&1; then [cite: 110]
-    alias dps='docker ps' [cite: 111]
-    alias dpsa='docker ps -a' [cite: 111]
-    alias di='docker images' [cite: 111]
-    alias dstop='docker stop $(docker ps -q)' [cite: 111]
-    alias drm='docker rm $(docker ps -aq)' [cite: 111]
-    alias drmi='docker rmi $(docker images -q)' [cite: 111]
-    alias dprune='docker system prune -af' [cite: 111]
-    alias dlog='docker logs' [cite: 111]
-    alias dexec='docker exec -it' [cite: 111]
-    alias dbuild='docker build' [cite: 111]
-    alias drun='docker run' [cite: 111]
-    alias dpull='docker pull' [cite: 111]
-    alias dpush='docker push' [cite: 111]
+if command -v docker >/dev/null 2>&1; then
+    alias dps='docker ps'
+    alias dpsa='docker ps -a'
+    alias di='docker images'
+    alias dstop='docker stop $(docker ps -q)'
+    alias drm='docker rm $(docker ps -aq)'
+    alias drmi='docker rmi $(docker images -q)'
+    alias dprune='docker system prune -af'
+    alias dlog='docker logs'
+    alias dexec='docker exec -it'
+    alias dbuild='docker build'
+    alias drun='docker run'
+    alias dpull='docker pull'
+    alias dpush='docker push'
 fi
 
-if command -v flatpak >/dev/null 2>&1; then [cite: 111, 112]
-    alias fplist='flatpak list' [cite: 112]
-    alias fpinstall='flatpak install' [cite: 112]
-    alias fpremove='flatpak uninstall' [cite: 112]
-    alias fpupdate='flatpak update' [cite: 112]
-    alias fpsearch='flatpak search' [cite: 112]
-    alias fprun='flatpak run' [cite: 112]
+if command -v flatpak >/dev/null 2>&1; then
+    alias fplist='flatpak list'
+    alias fpinstall='flatpak install'
+    alias fpremove='flatpak uninstall'
+    alias fpupdate='flatpak update'
+    alias fpsearch='flatpak search'
+    alias fprun='flatpak run'
 fi
 
 # ============================================================================
 # MISCELLANEOUS ALIASES
 # ============================================================================
-alias now='date +"%T"' [cite: 112]
-alias nowdate='date +"%d-%m-%Y"' [cite: 112]
-alias path='echo -e ${PATH//:/\\n}' [cite: 112]
-alias j='jobs -l' [cite: 112]
-alias reload='source ~/.zshrc' [cite: 112]
-alias sa='source ~/.zshrc && echo "🚀 ZSH configuration reloaded successfully!"' [cite: 112]
+alias now='date +"%T"'
+alias nowdate='date +"%d-%m-%Y"'
+alias path='echo -e ${PATH//:/\\n}'
+alias j='jobs -l'
+alias reload='source ~/.zshrc'
+alias sa='source ~/.zshrc && echo "🚀 ZSH configuration reloaded successfully!"'
 
-alias weather='curl wttr.in' [cite: 112]
-alias weatherlocal='curl wttr.in/$(curl -s ipinfo.io/city 2>/dev/null)' [cite: 112]
+alias weather='curl wttr.in'
+alias weatherlocal='curl wttr.in/$(curl -s ipinfo.io/city 2>/dev/null)'
