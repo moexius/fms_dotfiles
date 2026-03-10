@@ -26,8 +26,7 @@ DOTFILES_DIR="$HOME/.dotfiles"
 
 detect_os() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-        PACKAGE_MANAGER="brew"
+        OS="macos"; PACKAGE_MANAGER="brew"
     elif [[ -f /etc/os-release ]]; then
         . /etc/os-release
         case $ID in
@@ -41,8 +40,7 @@ detect_os() {
             *) log_error "Unsupported OS: $ID"; exit 1 ;;
         esac
     else
-        log_error "Cannot detect OS"
-        exit 1
+        log_error "Cannot detect OS"; exit 1
     fi
     log_info "Detected OS: $OS with package manager: $PACKAGE_MANAGER"
 }
@@ -71,46 +69,69 @@ update_packages() {
     esac
 }
 
-install_packages() {
+# PHASE 1: Baseline Dependencies
+install_baseline() {
+    log_info "Installing baseline dependencies (git, curl, wget, zsh)..."
+    case $OS in
+        debian) sudo apt install -y git curl wget unzip zsh build-essential ;;
+        rhel|fedora)
+            if [[ "$PACKAGE_MANAGER" == "yum" ]]; then
+                sudo yum install -y git curl wget unzip zsh gcc make epel-release
+            else
+                sudo dnf install -y git curl wget unzip zsh gcc make
+            fi ;;
+        arch)
+            sudo pacman -S --noconfirm git curl wget unzip zsh base-devel
+            if [[ "$IS_CACHYOS" == "true" ]]; then
+                sudo pacman -S --noconfirm cpupower cachyos-hello cachyos-kernel-manager 2>/dev/null || true
+            fi ;;
+        alpine) sudo apk add git curl wget unzip zsh build-base ;;
+        opensuse) sudo zypper install -y git curl wget unzip zsh gcc make find-utils ripgrep ;;
+        macos)
+            if ! command -v brew >/dev/null 2>&1; then
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+            fi
+            brew install git curl wget zsh unzip ;;
+    esac
+}
+
+# PHASE 2: Clone Dotfiles
+setup_dotfiles() {
+    log_info "Setting up dotfiles repository..."
+    if [[ -d "$DOTFILES_DIR" ]]; then
+        cd "$DOTFILES_DIR" && git pull origin main
+    else
+        git clone "$REPO_URL" "$DOTFILES_DIR" && cd "$DOTFILES_DIR"
+    fi
+}
+
+# PHASE 3: Profile Apps
+install_profile_packages() {
     log_info "Detecting machine profile for software provisioning..."
 
-    # 1. Proxmox LXC Container Profile (Debian/Ubuntu)
     if grep -qa container=lxc /proc/1/environ 2>/dev/null; then
         log_info "📦 Profile: LXC Container (Headless)"
         if [[ -f "$DOTFILES_DIR/packages/lxc.txt" ]]; then
-            # Read the text file, ignore comments (#), and install
             local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/lxc.txt" | tr '\n' ' ')
-            sudo apt update
             sudo apt install -y $pkgs
             log_success "LXC headless packages installed."
         else
-            log_warning "No packages/lxc.txt found. Skipping."
+            log_warning "No packages/lxc.txt found in repo. Skipping extra apps."
         fi
 
-    # 2. macOS Laptop Profile
     elif [[ "$OS" == "macos" ]]; then
         log_info "🍎 Profile: macOS Workstation"
-        
-        # Ensure Homebrew is installed first
-        if ! command -v brew >/dev/null 2>&1; then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-        fi
-        
         if [[ -f "$DOTFILES_DIR/packages/Brewfile" ]]; then
-            # Use Brew bundle to install everything from the file
             brew bundle --file="$DOTFILES_DIR/packages/Brewfile"
-            log_success "macOS apps and tools installed via Brewfile."
+            log_success "macOS apps installed via Brewfile."
         else
             log_warning "No packages/Brewfile found. Skipping."
         fi
 
-    # 3. CachyOS PC Profile
     elif [[ "$IS_CACHYOS" == "true" ]]; then
         log_info "🚀 Profile: CachyOS Workstation"
         if [[ -f "$DOTFILES_DIR/packages/cachyos.txt" ]]; then
-            # Update CachyOS keyring first, then install from list
-            sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
             local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/cachyos.txt" | tr '\n' ' ')
             sudo pacman -S --needed --noconfirm $pkgs
             log_success "CachyOS packages installed."
@@ -118,14 +139,14 @@ install_packages() {
             log_warning "No packages/cachyos.txt found. Skipping."
         fi
 
-    # 4. Fallback (If you spin up an Alpine or standard Arch VM)
     else
         log_info "❓ Profile: Generic $OS"
-        log_warning "No specific provisioning manifest for this OS yet. Installing bare minimums..."
         case $PACKAGE_MANAGER in
-            apt) sudo apt install -y zsh git curl wget unzip ;;
-            pacman) sudo pacman -S --noconfirm zsh git curl wget unzip ;;
-            apk) sudo apk add zsh git curl wget unzip ;;
+            apt) sudo apt install -y fd-find bat lsd 2>/dev/null || true ;;
+            pacman) sudo pacman -S --noconfirm fd bat lsd 2>/dev/null || true ;;
+            apk) sudo apk add fd bat lsd 2>/dev/null || true ;;
+            zypper) sudo zypper install -y fd bat lsd 2>/dev/null || true ;;
+            brew) brew install fd bat lsd fzf zoxide tldr ;;
         esac
     fi
 }
@@ -168,15 +189,6 @@ install_tldr() {
     fi
 }
 
-setup_dotfiles() {
-    log_info "Setting up dotfiles..."
-    if [[ -d "$DOTFILES_DIR" ]]; then
-        cd "$DOTFILES_DIR" && git pull origin main
-    else
-        git clone "$REPO_URL" "$DOTFILES_DIR" && cd "$DOTFILES_DIR"
-    fi
-}
-
 backup_configs() {
     log_info "Backing up existing configurations..."
     local backup_dir="$HOME/.config-backup-$(date +%Y%m%d_%H%M%S)"
@@ -216,7 +228,6 @@ install_configs() {
 create_private_aliases() {
     local private_aliases="$HOME/.zsh_private_aliases"
     [[ -f "$private_aliases" ]] && return 0
-    
     if [[ "$OS" != "macos" ]]; then return 0; fi
     
     cat > "$private_aliases" << 'EOF'
@@ -234,11 +245,15 @@ main() {
     detect_os
     check_root
     update_packages
-    install_packages
+    
+    # 💥 The newly ordered installation flow
+    install_baseline
+    setup_dotfiles
+    install_profile_packages
+    
     install_starship
     install_additional_tools
     install_tldr
-    setup_dotfiles
     backup_configs
     install_configs
     create_private_aliases
