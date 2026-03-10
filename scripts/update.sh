@@ -92,6 +92,35 @@ update_configs() {
     log_success "$updated core configuration files linked."
 }
 
+sync_manifest_packages() {
+    log_info "Syncing installed apps with package manifests..."
+
+    if grep -qa container=lxc /proc/1/environ 2>/dev/null; then
+        if [[ -f "$DOTFILES_DIR/packages/lxc.txt" ]]; then
+            local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/lxc.txt" | tr '\n' ' ')
+            if [[ -n "$pkgs" ]]; then
+                sudo apt install -y $pkgs
+                log_success "LXC manifest packages synced."
+            fi
+        fi
+
+    elif [[ "$OS" == "macos" ]]; then
+        if [[ -f "$DOTFILES_DIR/packages/Brewfile" ]]; then
+            brew bundle --file="$DOTFILES_DIR/packages/Brewfile"
+            log_success "macOS Brewfile synced."
+        fi
+
+    elif [[ "$IS_CACHYOS" == "true" ]]; then
+        if [[ -f "$DOTFILES_DIR/packages/cachyos.txt" ]]; then
+            local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/cachyos.txt" | tr '\n' ' ')
+            if [[ -n "$pkgs" ]]; then
+                sudo pacman -S --needed --noconfirm $pkgs
+                log_success "CachyOS manifest packages synced."
+            fi
+        fi
+    fi
+}
+
 update_tools() {
     log_info "Checking for tool updates..."
     case $OS in
@@ -179,6 +208,11 @@ main() {
     
     if [[ "$update_tools_flag" == true ]]; then
         update_tools
+    fi
+
+    if [[ "$update_tools_flag" == true ]]; then
+        update_tools
+        sync_manifest_packages  # <-- ADD IT HERE
     fi
     
     show_summary
