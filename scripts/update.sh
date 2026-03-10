@@ -111,6 +111,13 @@ update_tools() {
             ;;
         alpine) sudo apk update && sudo apk upgrade ;;
     esac
+
+    # Add fresh-editor update seamlessly
+    if command -v fresh >/dev/null 2>&1; then
+        log_info "Updating fresh-editor..."
+        curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+    fi
+
     log_success "System packages updated"
 }
 
