@@ -16,7 +16,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export PATH="$PATH:$HOME/.lmstudio/bin"
 fi
 
-export EDITOR="nvim"
+export EDITOR="fresh"
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 

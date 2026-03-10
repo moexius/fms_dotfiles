@@ -237,6 +237,57 @@ EOF
     chmod 600 "$private_aliases"
 }
 
+install_fresh_editor() {
+    log_info "Installing fresh-editor from official sources..."
+    
+    if command -v fresh >/dev/null 2>&1; then
+        log_info "fresh-editor is already installed."
+        return
+    fi
+
+    case $OS in
+        macos)
+            # Handled automatically by our Brewfile, but here as a fallback
+            if ! command -v fresh >/dev/null 2>&1; then
+                brew tap sinelaw/fresh
+                brew install fresh-editor
+            fi
+            ;;
+        arch)
+            # CachyOS / Arch: The repo recommends the binary AUR package
+            log_info "Installing via AUR (fresh-editor-bin)..."
+            if command -v yay >/dev/null 2>&1; then
+                yay -S --noconfirm fresh-editor-bin
+            elif command -v paru >/dev/null 2>&1; then
+                paru -S --noconfirm fresh-editor-bin
+            else
+                # Fallback to the official auto-detect script if no AUR helper is found
+                curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            fi
+            ;;
+        debian)
+            # Debian / Proxmox LXC: Download and install the latest .deb natively
+            log_info "Fetching latest .deb release for Debian..."
+            local DEB_URL=$(curl -s https://api.github.com/repos/sinelaw/fresh/releases/latest | grep "browser_download_url.*_$(dpkg --print-architecture)\.deb" | cut -d '"' -f 4)
+            
+            if [[ -n "$DEB_URL" ]]; then
+                curl -sL "$DEB_URL" -o /tmp/fresh-editor.deb
+                sudo dpkg -i /tmp/fresh-editor.deb
+                rm /tmp/fresh-editor.deb
+            else
+                # Fallback to the official auto-detect script
+                curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            fi
+            ;;
+        *)
+            # Universal fallback for any other OS
+            curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            ;;
+    esac
+    
+    log_success "fresh-editor installed successfully!"
+}
+
 main() {
     read -p "Do you want to continue? (y/N): " -n 1 -r
     echo
@@ -257,6 +308,8 @@ main() {
     backup_configs
     install_configs
     create_private_aliases
+
+    install_fresh_editor
     
     echo -e "${GREEN}🎉 ZSH and Starship have been installed successfully!${NC}"
     if [[ "$0" != *"zsh"* ]] && [[ -z "$ZSH_VERSION" ]]; then

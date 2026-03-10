@@ -6,6 +6,9 @@ brew "zoxide"
 brew "bat"
 brew "lsd"
 
+tap "sinelaw/fresh"
+brew "fresh-editor"
+
 # Mac Apps (Casks)
 # cask "google-chrome"
 # cask "visual-studio-code"

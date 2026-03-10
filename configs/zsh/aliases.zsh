@@ -154,6 +154,8 @@ fi
 alias t="tldr"
 alias f="fzf"
 
+alias nano="fresh"
+
 alias g="git"
 alias gs="git status"
 alias ga="git add"
