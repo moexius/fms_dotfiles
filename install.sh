@@ -202,8 +202,25 @@ set_default_shell() {
     log_info "Setting ZSH as default shell..."
     local zsh_path=$(which zsh)
     [[ -z "$zsh_path" ]] && return 1
-    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null; fi
-    if [[ "$SHELL" != *"zsh"* ]]; then chsh -s "$zsh_path" 2>/dev/null || true; fi
+    
+    # 1. Ensure ZSH is recognized as a valid system shell
+    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then 
+        echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+    
+    # 2. Try standard chsh, then usermod as a fallback
+    local current_user=$(whoami)
+    sudo chsh -s "$zsh_path" "$current_user" 2>/dev/null || \
+    sudo usermod -s "$zsh_path" "$current_user" 2>/dev/null || true
+    
+    # 3. The Ultimate Fallback: Auto-exec ZSH from Bash
+    # This prevents the "double exit" bug on stubborn LXC containers
+    if [[ -f "$HOME/.bashrc" ]]; then
+        if ! grep -q "exec zsh" "$HOME/.bashrc"; then
+            log_info "Adding ZSH safety net to .bashrc..."
+            echo -e "\n# Auto-launch ZSH if the system forces Bash\nif [[ \$- == *i* ]]; then\n    exec zsh\nfi" >> "$HOME/.bashrc"
+        fi
+    fi
 }
 
 install_configs() {
