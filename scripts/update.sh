@@ -73,18 +73,22 @@ update_configs() {
     # Ensure target directories exist
     mkdir -p "$HOME/.config" "$backup_dir"
 
-    # Backup & Copy zshrc (Only backup if it's a real file, not a symlink)
+    # Backup & Copy zshrc
     if [[ -f "$DOTFILES_DIR/configs/zsh/zshrc" ]]; then
-        [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]] && mv "$HOME/.zshrc" "$backup_dir/"
+        if [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]]; then
+            mv "$HOME/.zshrc" "$backup_dir/"
+        fi
         ln -sf "$DOTFILES_DIR/configs/zsh/zshrc" "$HOME/.zshrc"
-        ((updated++))
+        updated=$((updated + 1))
     fi
 
-    # Backup & Copy Starship (Only backup if it's a real file, not a symlink)
+    # Backup & Copy Starship
     if [[ -f "$DOTFILES_DIR/configs/starship.toml" ]]; then
-        [[ -f "$HOME/.config/starship.toml" && ! -L "$HOME/.config/starship.toml" ]] && mv "$HOME/.config/starship.toml" "$backup_dir/"
+        if [[ -f "$HOME/.config/starship.toml" && ! -L "$HOME/.config/starship.toml" ]]; then
+            mv "$HOME/.config/starship.toml" "$backup_dir/"
+        fi
         ln -sf "$DOTFILES_DIR/configs/starship.toml" "$HOME/.config/starship.toml"
-        ((updated++))
+        updated=$((updated + 1))
     fi
 
     # Cleanup backup dir if empty
@@ -175,7 +179,7 @@ main() {
                 update_tools_flag=true
                 shift
                 ;;
-            --force|-f)
+            --force|-f|--yes|-y)
                 force_update=true
                 shift
                 ;;
@@ -183,6 +187,7 @@ main() {
                 echo "Usage: $0 [OPTIONS]"
                 echo "  -t, --tools    Also update system tools and packages"
                 echo "  -f, --force    Force update without confirmation"
+                echo "  -y, --yes      Alias for --force"
                 exit 0
                 ;;
             *)
@@ -208,11 +213,7 @@ main() {
     
     if [[ "$update_tools_flag" == true ]]; then
         update_tools
-    fi
-
-    if [[ "$update_tools_flag" == true ]]; then
-        update_tools
-        sync_manifest_packages  # <-- ADD IT HERE
+        sync_manifest_packages
     fi
     
     show_summary
