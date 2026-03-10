@@ -7,3 +7,4 @@ unzip
 fd-find
 bat
 lsd
+fzf
