@@ -1,0 +1,9 @@
+# Headless Terminal Tools only
+zsh
+curl
+git
+wget
+unzip
+fd-find
+bat
+lsd

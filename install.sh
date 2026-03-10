@@ -72,36 +72,62 @@ update_packages() {
 }
 
 install_packages() {
-    log_info "Installing required packages..."
-    case $OS in
-        debian)
-            sudo apt install -y zsh curl git wget unzip build-essential
-            sudo apt install -y fd-find bat lsd 2>/dev/null || true ;;
-        rhel|fedora)
-            if [[ "$PACKAGE_MANAGER" == "yum" ]]; then
-                sudo yum install -y zsh curl git wget unzip gcc make epel-release
-                sudo yum install -y fd-find bat lsd 2>/dev/null || true
-            else
-                sudo dnf install -y zsh curl git wget unzip gcc make
-                sudo dnf install -y fd bat lsd 2>/dev/null || true
-            fi ;;
-        arch)
-            sudo pacman -S --noconfirm zsh curl git wget unzip base-devel fd bat lsd
-            if [[ "$IS_CACHYOS" == "true" ]]; then
-                sudo pacman -S --noconfirm cpupower cachyos-hello cachyos-kernel-manager 2>/dev/null || true
-            fi ;;
-        alpine)
-            sudo apk add zsh curl git wget unzip build-base fd bat lsd 2>/dev/null || true ;;
-        opensuse)
-            sudo zypper install -y zsh curl git wget unzip gcc make find-utils ripgrep fd bat lsd 2>/dev/null || true ;;
-        macos)
-            if ! command -v brew >/dev/null 2>&1; then
-                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-            fi
-            brew install zsh curl git wget fd bat lsd fzf zoxide tldr ;;
-    esac
-    log_success "Required packages installed"
+    log_info "Detecting machine profile for software provisioning..."
+
+    # 1. Proxmox LXC Container Profile (Debian/Ubuntu)
+    if grep -qa container=lxc /proc/1/environ 2>/dev/null; then
+        log_info "📦 Profile: LXC Container (Headless)"
+        if [[ -f "$DOTFILES_DIR/packages/lxc.txt" ]]; then
+            # Read the text file, ignore comments (#), and install
+            local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/lxc.txt" | tr '\n' ' ')
+            sudo apt update
+            sudo apt install -y $pkgs
+            log_success "LXC headless packages installed."
+        else
+            log_warning "No packages/lxc.txt found. Skipping."
+        fi
+
+    # 2. macOS Laptop Profile
+    elif [[ "$OS" == "macos" ]]; then
+        log_info "🍎 Profile: macOS Workstation"
+        
+        # Ensure Homebrew is installed first
+        if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+        
+        if [[ -f "$DOTFILES_DIR/packages/Brewfile" ]]; then
+            # Use Brew bundle to install everything from the file
+            brew bundle --file="$DOTFILES_DIR/packages/Brewfile"
+            log_success "macOS apps and tools installed via Brewfile."
+        else
+            log_warning "No packages/Brewfile found. Skipping."
+        fi
+
+    # 3. CachyOS PC Profile
+    elif [[ "$IS_CACHYOS" == "true" ]]; then
+        log_info "🚀 Profile: CachyOS Workstation"
+        if [[ -f "$DOTFILES_DIR/packages/cachyos.txt" ]]; then
+            # Update CachyOS keyring first, then install from list
+            sudo pacman -Sy cachyos-keyring --noconfirm 2>/dev/null || true
+            local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/cachyos.txt" | tr '\n' ' ')
+            sudo pacman -S --needed --noconfirm $pkgs
+            log_success "CachyOS packages installed."
+        else
+            log_warning "No packages/cachyos.txt found. Skipping."
+        fi
+
+    # 4. Fallback (If you spin up an Alpine or standard Arch VM)
+    else
+        log_info "❓ Profile: Generic $OS"
+        log_warning "No specific provisioning manifest for this OS yet. Installing bare minimums..."
+        case $PACKAGE_MANAGER in
+            apt) sudo apt install -y zsh git curl wget unzip ;;
+            pacman) sudo pacman -S --noconfirm zsh git curl wget unzip ;;
+            apk) sudo apk add zsh git curl wget unzip ;;
+        esac
+    fi
 }
 
 install_starship() {

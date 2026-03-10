@@ -1,0 +1,12 @@
+# Terminal Tools
+zsh
+starship
+fzf
+zoxide
+bat
+lsd
+
+# GUI / System Apps
+# firefox
+# visual-studio-code-bin
+# kitty

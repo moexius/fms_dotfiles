@@ -1,0 +1,12 @@
+# Core Terminal Tools
+brew "zsh"
+brew "starship"
+brew "fzf"
+brew "zoxide"
+brew "bat"
+brew "lsd"
+
+# Mac Apps (Casks)
+# cask "google-chrome"
+# cask "visual-studio-code"
+# cask "raycast"
