@@ -125,6 +125,42 @@ sync_manifest_packages() {
     fi
 }
 
+ensure_fresh_editor() {
+    if command -v fresh >/dev/null 2>&1; then
+        log_info "Updating fresh-editor..."
+        curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+        return
+    fi
+
+    log_info "fresh-editor is missing! Installing from official sources..."
+    case $OS in
+        macos)
+            brew tap sinelaw/fresh 2>/dev/null || true
+            brew install fresh-editor
+            ;;
+        arch)
+            if command -v yay >/dev/null 2>&1; then
+                yay -S --noconfirm fresh-editor-bin
+            else
+                curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            fi
+            ;;
+        debian)
+            local DEB_URL=$(curl -s https://api.github.com/repos/sinelaw/fresh/releases/latest | grep "browser_download_url.*_$(dpkg --print-architecture)\.deb" | cut -d '"' -f 4)
+            if [[ -n "$DEB_URL" ]]; then
+                curl -sL "$DEB_URL" -o /tmp/fresh-editor.deb
+                sudo dpkg -i /tmp/fresh-editor.deb
+                rm /tmp/fresh-editor.deb
+            else
+                curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            fi
+            ;;
+        *)
+            curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
+            ;;
+    esac
+}
+
 update_tools() {
     log_info "Checking for tool updates..."
     case $OS in
@@ -145,11 +181,7 @@ update_tools() {
         alpine) sudo apk update && sudo apk upgrade ;;
     esac
 
-    # Add fresh-editor update seamlessly
-    if command -v fresh >/dev/null 2>&1; then
-        log_info "Updating fresh-editor..."
-        curl -fsSL https://raw.githubusercontent.com/sinelaw/fresh/refs/heads/master/scripts/install.sh | sh
-    fi
+    ensure_fresh_editor
 
     log_success "System packages updated"
 }
