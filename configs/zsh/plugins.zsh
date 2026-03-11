@@ -88,6 +88,7 @@ fi
 
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
+bindkey '^[r' fzf-history-widget
 
 # ============================================================================
 # ATUIN HISTORY (Local Only)
