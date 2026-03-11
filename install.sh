@@ -305,6 +305,32 @@ install_fresh_editor() {
     log_success "fresh-editor installed successfully!"
 }
 
+install_atuin() {
+    log_info "Installing Atuin..."
+    
+    if command -v atuin >/dev/null 2>&1; then
+        log_info "Atuin is already installed."
+        return
+    fi
+
+    case $OS in
+        macos)
+            # Fallback if it isn't in your Brewfile
+            brew install atuin 
+            ;;
+        arch)
+            # Pacman handles it natively for Arch/CachyOS
+            sudo pacman -S --needed --noconfirm atuin 
+            ;;
+        *)
+            # The official rust-based installer for Debian/Ubuntu/LXC
+            curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh 
+            ;;
+    esac
+    
+    log_success "Atuin installed successfully!"
+}
+
 main() {
     read -p "Do you want to continue? (y/N): " -n 1 -r
     echo

@@ -5,6 +5,7 @@ brew "fzf"
 brew "zoxide"
 brew "bat"
 brew "lsd"
+brew "atuin"
 
 tap "sinelaw/fresh"
 brew "fresh-editor"

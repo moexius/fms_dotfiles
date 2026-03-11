@@ -90,6 +90,15 @@ bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 
 # ============================================================================
+# ATUIN HISTORY (Local Only)
+# ============================================================================
+# We load this last so it successfully overrides the history-substring-search 
+# bindings for the Up Arrow and Ctrl+R.
+if command -v atuin >/dev/null 2>&1; then
+    eval "$(atuin init zsh)"
+fi
+
+# ============================================================================
 # STARTUP MESSAGE
 # ============================================================================
 case $ENVIRONMENT in

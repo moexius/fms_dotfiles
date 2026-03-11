@@ -1,0 +1,12 @@
+# ~/.config/atuin/config.toml
+
+# 1. Kill all cloud/sync functionality
+update_check = false
+sync_address = ""
+
+# 2. Make the UI an inline menu instead of full-screen
+style = "compact"
+inline_height = 15
+
+# 3. Use standard search UI on Up Arrow
+enter_accept = false
