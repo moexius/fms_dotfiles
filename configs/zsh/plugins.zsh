@@ -95,7 +95,7 @@ bindkey '^[[1;5D' backward-word
 # We load this last so it successfully overrides the history-substring-search 
 # bindings for the Up Arrow and Ctrl+R.
 if command -v atuin >/dev/null 2>&1; then
-    eval "$(atuin init zsh)"
+    eval "$(atuin init zsh --disable-up-arrow)"
 fi
 
 # ============================================================================
