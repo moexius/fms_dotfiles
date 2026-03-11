@@ -353,6 +353,7 @@ main() {
     create_private_aliases
 
     install_fresh_editor
+    install_atuin
     
     echo -e "${GREEN}🎉 ZSH and Starship have been installed successfully!${NC}"
     if [[ "$0" != *"zsh"* ]] && [[ -z "$ZSH_VERSION" ]]; then

@@ -161,6 +161,20 @@ ensure_fresh_editor() {
     esac
 }
 
+ensure_atuin() {
+    if command -v atuin >/dev/null 2>&1; then
+        return
+    fi
+
+    log_info "Atuin is missing! Installing..."
+    case $OS in
+        macos) brew install atuin ;;
+        arch) sudo pacman -S --needed --noconfirm atuin ;;
+        *) curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh ;;
+    esac
+    log_success "Atuin installed."
+}
+
 update_tools() {
     log_info "Checking for tool updates..."
     case $OS in
@@ -182,6 +196,7 @@ update_tools() {
     esac
 
     ensure_fresh_editor
+    ensure_atuin
 
     log_success "System packages updated"
 }
