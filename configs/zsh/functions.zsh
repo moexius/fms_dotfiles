@@ -145,8 +145,6 @@ function fzf_history() {
     selected=$(history | fzf --tac --no-sort --height 40% --reverse --border | sed 's/^[ ]*[0-9]*[ ]*//')
     [ -n "$selected" ] && print -z "$selected"
 }
-bindkey '^R' fzf_history
-zle -N fzf_history
 
 # ============================================================================
 # CACHYOS SPECIFIC FUNCTIONS

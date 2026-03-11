@@ -16,6 +16,9 @@ error_symbol = '[➜](bold red)'
 [package]
 disabled = true
 
+[swift]
+disabled = true
+
 # Configure the format of the prompt
 format = """
 [╭─](bold blue)$os$username$hostname$directory$git_branch$git_status$python$nodejs$rust$golang$java$docker_context

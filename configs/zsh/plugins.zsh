@@ -58,46 +58,36 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
 
 if command -v fzf >/dev/null 2>&1; then
-    # Completely silence the test. If it succeeds, run it.
     if fzf --zsh >/dev/null 2>&1; then
         eval "$(fzf --zsh)"
     else
-        # Fallback for older versions
         [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh 2>/dev/null
         [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh 2>/dev/null
         [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh 2>/dev/null
     fi
+    # Immediately reassign ^R to Alt+R BEFORE Atuin loads
+    bindkey '^[r' fzf-history-widget
+    bindkey -r '^r'  # unbind Ctrl+R from FZF now
 fi
 
 # ============================================================================
-# COMPLETION & BINDINGS
+# ATUIN HISTORY (Local Only) — must load AFTER FZF to win the ^R binding
 # ============================================================================
-autoload -Uz compinit && compinit
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*' menu select
-zstyle ':completion:*:*:*:*:descriptions' format '%F{green}-- %d --%f'
-zstyle ':completion:*' group-name ''
-
-if [[ -n "${functions[_zsh_highlight]}" ]]; then
-    bindkey '^[[A' history-substring-search-up
-    bindkey '^[[B' history-substring-search-down
-    bindkey '^P' history-substring-search-up
-    bindkey '^N' history-substring-search-down
-fi
-
-bindkey '^[[1;5C' forward-word
-bindkey '^[[1;5D' backward-word
-bindkey '^[r' fzf-history-widget
-
-# ============================================================================
-# ATUIN HISTORY (Local Only)
-# ============================================================================
-# We load this last so it successfully overrides the history-substring-search 
-# bindings for the Up Arrow and Ctrl+R.
 if command -v atuin >/dev/null 2>&1; then
-    eval "$(atuin init zsh --disable-up-arrow)"
+    export ATUIN_NOBIND="true"
+    eval "$(atuin init zsh)"
+
+    local atuin_w="atuin-search"
+    if [[ -z "${widgets[$atuin_w]}" ]]; then
+        atuin_w="_atuin_search_widget"
+    fi
+
+    bindkey -M emacs '^r' $atuin_w
+    bindkey -M viins '^r' $atuin_w
+    bindkey -M vicmd '^r' $atuin_w
+    bindkey '^r' $atuin_w
 fi
+# Note: Alt+R for FZF is already bound above — no second assignment needed here
 
 # ============================================================================
 # STARTUP MESSAGE
