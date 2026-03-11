@@ -324,7 +324,7 @@ install_atuin() {
             ;;
         *)
             # The official rust-based installer for Debian/Ubuntu/LXC
-            curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh 
+            ATUIN_NO_MODIFY_SHELL=1 bash <(curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh) --no-sync
             ;;
     esac
     
