@@ -13,7 +13,7 @@ source "$ZINIT_HOME/zinit.zsh"
 
 # Load plugins
 zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-autosuggestions
+#zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-history-substring-search
 zinit light zsh-users/zsh-completions
 
