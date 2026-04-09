@@ -10,3 +10,6 @@ inline_height = 15
 
 # 3. Use standard search UI on Up Arrow
 enter_accept = false
+
+# 4. Bind Up arrow to Atuin search
+keymap_mode = "auto"

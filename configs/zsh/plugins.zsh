@@ -86,6 +86,11 @@ if command -v atuin >/dev/null 2>&1; then
     bindkey -M viins '^r' $_atuin_w
     bindkey -M vicmd '^r' $_atuin_w
     bindkey '^r' $_atuin_w
+
+    bindkey '^[[A' $_atuin_w   # Up arrow
+    bindkey -M emacs '^[[A' $_atuin_w
+    bindkey -M viins '^[[A' $_atuin_w
+    bindkey -M vicmd 'k' $_atuin_w
 fi
 # Note: Alt+R for FZF is already bound above — no second assignment needed here
 
