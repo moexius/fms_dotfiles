@@ -18,7 +18,7 @@ zinit light zsh-users/zsh-history-substring-search
 zinit light zsh-users/zsh-completions
 
 ZSH_AUTOCOMPLETE_LOADED=false
-if ! command -v systemd-detect-virt >/dev/null 2>&1 || [[ "$(systemd-detect-virt 2>/dev/null)" != "lxc" ]]; then
+if ! grep -qa 'container=lxc' /proc/1/environ 2>/dev/null; then
     zinit light marlonrichert/zsh-autocomplete
     ZSH_AUTOCOMPLETE_LOADED=true
 fi
@@ -39,7 +39,7 @@ if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init zsh)"
 fi
 
-if [[ "$ENVIRONMENT" == "macos" ]]; then
+if [[ "$DETECTED_OS" == "macos" ]]; then
     test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 fi
 
@@ -92,7 +92,7 @@ fi
 # ============================================================================
 # STARTUP MESSAGE
 # ============================================================================
-case $ENVIRONMENT in
+case $DETECTED_OS in
     "container") echo "📦 Container ZSH loaded successfully!" ;;
     "macos") echo "🍎 macOS ZSH loaded successfully!" ;;
     *) [[ "$IS_CACHYOS" == "true" ]] && echo "🚀 CachyOS ZSH loaded successfully!" || echo "🐧 Linux ZSH loaded successfully!" ;;
