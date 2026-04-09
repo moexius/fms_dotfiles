@@ -13,4 +13,5 @@ brew "fresh-editor"
 # Mac Apps (Casks)
 # cask "google-chrome"
 # cask "visual-studio-code"
-# cask "raycast"
+# cask "raycast"brew "fd"
+brew "tldr"
