@@ -114,7 +114,7 @@ install_profile_packages() {
         log_info "📦 Profile: LXC Container (Headless)"
         if [[ -f "$DOTFILES_DIR/packages/lxc.txt" ]]; then
             local pkgs=$(grep -vE "^\s*#" "$DOTFILES_DIR/packages/lxc.txt" | tr '\n' ' ')
-            sudo apt install -y $pkgs
+            [[ -n "$pkgs" ]] && sudo apt install -y $pkgs
             log_success "LXC headless packages installed."
         else
             log_warning "No packages/lxc.txt found in repo. Skipping extra apps."
@@ -238,6 +238,11 @@ install_configs() {
     if [[ -f "$DOTFILES_DIR/configs/starship.toml" ]]; then
         ln -sf "$DOTFILES_DIR/configs/starship.toml" "$HOME/.config/starship.toml"
         log_success "Starship configuration symlinked"
+    fi
+    if [[ -f "$DOTFILES_DIR/configs/atuin/config.toml" ]]; then
+        mkdir -p "$HOME/.config/atuin"
+        ln -sf "$DOTFILES_DIR/configs/atuin/config.toml" "$HOME/.config/atuin/config.toml"
+        log_success "Atuin configuration symlinked"
     fi
     set_default_shell
 }
