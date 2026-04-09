@@ -20,7 +20,7 @@ alias_search() {
 
 alias_list() {
     local category="$1"
-    case "$category" in
+    case "$caegory" in
         package) echo "📦 Package Aliases:"; alias | grep -E "(install|remove|update|upgrade|search|clean|brew|apt|dnf|yum|zypper|pacman|apk)" | sort | sed 's/^/  /' ;;
         system) echo "🖥️ System Aliases:"; alias | grep -E "(info|cpu|mem|disk|temp|battery|df|du|free|top|ps)" | sort | sed 's/^/  /' ;;
         service) echo "⚙️ Service Aliases:"; alias | grep -E "(start|stop|restart|status|enable|disable|systemctl|service)" | sort | sed 's/^/  /' ;;
@@ -62,7 +62,6 @@ alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
 alias ~="cd ~"
-alias h="cd ~"
 alias c="clear"
 alias cls="clear"
 
@@ -128,7 +127,7 @@ fi
 # UNIVERSAL ALIASES - NETWORK
 # ============================================================================
 alias ping="ping -c 5"
-alias myip="curl -s [https://icanhazip.com](https://icanhazip.com) && echo"
+alias myip="curl -s https://icanhazip.com && echo"
 
 if [[ "$ENVIRONMENT" == "macos" ]]; then
     alias localip="ipconfig getifaddr en0"
