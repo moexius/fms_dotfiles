@@ -138,14 +138,6 @@ function docker_exec() {
         docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
     fi
 }
-
-# History search with fzf
-function fzf_history() {
-    local selected
-    selected=$(history | fzf --tac --no-sort --height 40% --reverse --border | sed 's/^[ ]*[0-9]*[ ]*//')
-    [ -n "$selected" ] && print -z "$selected"
-}
-
 # ============================================================================
 # CACHYOS SPECIFIC FUNCTIONS
 # ============================================================================
