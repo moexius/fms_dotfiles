@@ -50,5 +50,3 @@ if [[ -f "$PRIVATE_ALIASES_FILE" && -r "$PRIVATE_ALIASES_FILE" ]]; then
 fi
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/fmoixsante/.lmstudio/bin"
-# End of LM Studio CLI section
-
