@@ -20,7 +20,7 @@ alias_search() {
 
 alias_list() {
     local category="$1"
-    case "$caegory" in
+    case "$category" in
         package) echo "📦 Package Aliases:"; alias | grep -E "(install|remove|update|upgrade|search|clean|brew|apt|dnf|yum|zypper|pacman|apk)" | sort | sed 's/^/  /' ;;
         system) echo "🖥️ System Aliases:"; alias | grep -E "(info|cpu|mem|disk|temp|battery|df|du|free|top|ps)" | sort | sed 's/^/  /' ;;
         service) echo "⚙️ Service Aliases:"; alias | grep -E "(start|stop|restart|status|enable|disable|systemctl|service)" | sort | sed 's/^/  /' ;;
@@ -222,7 +222,7 @@ if [[ "$DETECTED_OS" == "macos" ]]; then
     alias ts="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
     
     alias battery="pmset -g batt"
-    alias sleep="pmset sleepnow"
+    alias sleepnow="pmset sleepnow"
     alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
     alias screensaver="open -a ScreenSaverEngine"
 fi

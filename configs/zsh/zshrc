@@ -48,5 +48,4 @@ PRIVATE_ALIASES_FILE="$HOME/.zsh_private_aliases"
 if [[ -f "$PRIVATE_ALIASES_FILE" && -r "$PRIVATE_ALIASES_FILE" ]]; then
     source "$PRIVATE_ALIASES_FILE"
 fi
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/fmoixsante/.lmstudio/bin"
+

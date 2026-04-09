@@ -77,15 +77,15 @@ if command -v atuin >/dev/null 2>&1; then
     export ATUIN_NOBIND="true"
     eval "$(atuin init zsh)"
 
-    local atuin_w="atuin-search"
-    if [[ -z "${widgets[$atuin_w]}" ]]; then
-        atuin_w="_atuin_search_widget"
+    local _atuin_w="atuin-search"
+    if [[ -z "${widgets[$_atuin_w]}" ]]; then
+        _atuin_w="_atuin_search_widget"
     fi
 
-    bindkey -M emacs '^r' $atuin_w
-    bindkey -M viins '^r' $atuin_w
-    bindkey -M vicmd '^r' $atuin_w
-    bindkey '^r' $atuin_w
+    bindkey -M emacs '^r' $_atuin_w
+    bindkey -M viins '^r' $_atuin_w
+    bindkey -M vicmd '^r' $_atuin_w
+    bindkey '^r' $_atuin_w
 fi
 # Note: Alt+R for FZF is already bound above — no second assignment needed here
 

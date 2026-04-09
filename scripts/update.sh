@@ -170,7 +170,7 @@ ensure_atuin() {
     case $OS in
         macos) brew install atuin ;;
         arch) sudo pacman -S --needed --noconfirm atuin ;;
-        *) curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh ;;
+        *) ATUIN_NO_MODIFY_SHELL=1 bash <(curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh) --no-sync ;;
     esac
     log_success "Atuin installed."
 }
