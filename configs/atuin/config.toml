@@ -1,9 +1,11 @@
 # ~/.config/atuin/config.toml
 
-# Sync — fully disabled
+# Sync — self-hosted
 update_check = false
-sync_address = ""
-records_sync_enabled = false
+sync_address = "https://atuin.moexius.lab"
+auto_sync = true
+sync_frequency = "5m"
+records_sync_enabled = true
 daemon_enabled = false
 
 # UI
