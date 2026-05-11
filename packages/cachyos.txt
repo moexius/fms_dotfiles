@@ -13,6 +13,9 @@ snap-pac
 limine-snapper-sync
 btrbk
 
+# Streaming
+mangowm-git
+
 # GUI / System Apps
 # firefox
 # visual-studio-code-bin
