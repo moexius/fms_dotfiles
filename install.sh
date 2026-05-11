@@ -278,6 +278,44 @@ install_configs() {
     set_default_shell
 }
 
+setup_ssh_keys() {
+    if [[ "$IS_CACHYOS" != "true" ]]; then return; fi
+    log_info "Setting up SSH keys..."
+
+    # moexius key — GitHub
+    if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
+        ssh-keygen -t ed25519 -C "fjxiom1@gmail.com" -f "$HOME/.ssh/id_ed25519" -N ""
+        log_success "Generated ~/.ssh/id_ed25519"
+    else
+        log_info "~/.ssh/id_ed25519 already exists — skipping"
+    fi
+
+    # root key — btrbk → Proxmox
+    if [[ ! -f "/root/.ssh/id_ed25519" ]]; then
+        sudo ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N ""
+        log_success "Generated /root/.ssh/id_ed25519"
+    else
+        log_info "/root/.ssh/id_ed25519 already exists — skipping"
+    fi
+
+    # Add GitHub to known_hosts
+    ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+
+    echo ""
+    echo -e "${YELLOW}=== SSH MANUAL STEPS REQUIRED ===${NC}"
+    echo ""
+    echo "1. Add moexius public key to GitHub (for dotfiles push):"
+    echo "   cat ~/.ssh/id_ed25519.pub"
+    echo "   → github.com → Settings → SSH Keys → New SSH Key"
+    echo ""
+    echo "2. Switch dotfiles remote to SSH:"
+    echo "   git -C ~/.dotfiles remote set-url origin git@github.com:moexius/fms_dotfiles.git"
+    echo ""
+    echo "3. Copy root key to Proxmox (for btrbk backups):"
+    echo "   sudo ssh-copy-id root@192.168.1.12"
+    echo ""
+}
+
 create_private_aliases() {
     local private_aliases="$HOME/.zsh_private_aliases"
     [[ -f "$private_aliases" ]] && return 0
@@ -390,6 +428,7 @@ main() {
 
     install_fresh_editor
     install_atuin
+    setup_ssh_keys
     
     echo -e "${GREEN}🎉 ZSH and Starship have been installed successfully!${NC}"
     if [[ "$0" != *"zsh"* ]] && [[ -z "$ZSH_VERSION" ]]; then
