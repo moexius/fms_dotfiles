@@ -278,6 +278,87 @@ install_configs() {
     set_default_shell
 }
 
+setup_backup() {
+    if [[ "$IS_CACHYOS" != "true" ]]; then return; fi
+    if ! command -v snapper >/dev/null 2>&1 || ! command -v btrbk >/dev/null 2>&1; then
+        log_warning "snapper/btrbk not installed — skipping backup setup"
+        return
+    fi
+    log_info "Configuring snapper..."
+
+    # Create snapper configs (idempotent — fails silently if already exists)
+    sudo snapper -c root create-config / 2>/dev/null || true
+    sudo snapper -c home create-config /home 2>/dev/null || true
+
+    # Retention policy
+    sudo snapper -c root set-config \
+        "TIMELINE_CREATE=yes" \
+        "TIMELINE_LIMIT_HOURLY=5" \
+        "TIMELINE_LIMIT_DAILY=7" \
+        "TIMELINE_LIMIT_WEEKLY=4" \
+        "TIMELINE_LIMIT_MONTHLY=3" \
+        "TIMELINE_LIMIT_YEARLY=0" \
+        "NUMBER_LIMIT=20" \
+        "NUMBER_LIMIT_IMPORTANT=10"
+    sudo snapper -c home set-config \
+        "TIMELINE_CREATE=yes" \
+        "TIMELINE_LIMIT_HOURLY=5" \
+        "TIMELINE_LIMIT_DAILY=7" \
+        "TIMELINE_LIMIT_WEEKLY=4" \
+        "TIMELINE_LIMIT_MONTHLY=3" \
+        "TIMELINE_LIMIT_YEARLY=0" \
+        "NUMBER_LIMIT=20" \
+        "NUMBER_LIMIT_IMPORTANT=10"
+
+    sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer limine-snapper-sync.service 2>/dev/null || true
+    log_success "Snapper configured"
+
+    log_info "Configuring btrbk..."
+
+    # Create snapshot subvolumes
+    sudo btrfs subvolume create /.btrbk_snapshots 2>/dev/null || true
+    sudo btrfs subvolume create /home/.btrbk_snapshots 2>/dev/null || true
+
+    # Write btrbk config
+    sudo mkdir -p /etc/btrbk
+    sudo tee /etc/btrbk/btrbk.conf > /dev/null << 'EOF'
+transaction_log            /var/log/btrbk.log
+lockfile                   /var/lock/btrbk.lock
+
+ssh_identity               /root/.ssh/id_ed25519
+ssh_user                   root
+
+snapshot_preserve_min      2d
+snapshot_preserve          14d
+
+target_preserve_min        no
+target_preserve            20d 10w 6m
+
+stream_compress            zstd
+
+volume /
+  snapshot_dir    .btrbk_snapshots
+  subvolume       .
+  target raw      192.168.1.12:/mnt/disk6tb/backup/hfo-aorus/root
+
+volume /home
+  snapshot_dir    .btrbk_snapshots
+  subvolume       .
+  target raw      192.168.1.12:/mnt/disk6tb/backup/hfo-aorus/home
+EOF
+
+    sudo systemctl enable --now btrbk.timer 2>/dev/null || true
+    log_success "btrbk configured (timer enabled)"
+
+    echo ""
+    echo -e "${YELLOW}=== BTRBK MANUAL STEP ===${NC}"
+    echo "After SSH root key is copied to Proxmox, create remote backup dirs:"
+    echo "  sudo ssh root@192.168.1.12 'mkdir -p /mnt/disk6tb/backup/hfo-aorus/root /mnt/disk6tb/backup/hfo-aorus/home'"
+    echo "Then run first backup:"
+    echo "  sudo btrbk run"
+    echo ""
+}
+
 setup_ssh_keys() {
     if [[ "$IS_CACHYOS" != "true" ]]; then return; fi
     log_info "Setting up SSH keys..."
@@ -428,6 +509,7 @@ main() {
 
     install_fresh_editor
     install_atuin
+    setup_backup
     setup_ssh_keys
     
     echo -e "${GREEN}🎉 ZSH and Starship have been installed successfully!${NC}"
