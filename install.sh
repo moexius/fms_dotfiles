@@ -249,6 +249,8 @@ install_configs() {
         if [[ -f "$DOTFILES_DIR/configs/mango/config.conf" ]]; then
             mkdir -p "$HOME/.config/mango"
             ln -sf "$DOTFILES_DIR/configs/mango/config.conf" "$HOME/.config/mango/config.conf"
+            ln -sf "$DOTFILES_DIR/configs/mango/create-headless.sh" "$HOME/.config/mango/create-headless.sh"
+            chmod +x "$DOTFILES_DIR/configs/mango/create-headless.sh"
             log_success "MangoWM configuration symlinked"
         fi
         if [[ -f "$DOTFILES_DIR/configs/mcp/ollama_server.py" ]]; then
