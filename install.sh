@@ -244,6 +244,20 @@ install_configs() {
         ln -sf "$DOTFILES_DIR/configs/atuin/config.toml" "$HOME/.config/atuin/config.toml"
         log_success "Atuin configuration symlinked"
     fi
+
+    if [[ "$IS_CACHYOS" == "true" ]]; then
+        if [[ -f "$DOTFILES_DIR/configs/mango/config.conf" ]]; then
+            mkdir -p "$HOME/.config/mango"
+            ln -sf "$DOTFILES_DIR/configs/mango/config.conf" "$HOME/.config/mango/config.conf"
+            log_success "MangoWM configuration symlinked"
+        fi
+        if [[ -f "$DOTFILES_DIR/configs/mcp/ollama_server.py" ]]; then
+            mkdir -p "$HOME/.config/mcp"
+            ln -sf "$DOTFILES_DIR/configs/mcp/ollama_server.py" "$HOME/.config/mcp/ollama_server.py"
+            log_success "Ollama MCP server symlinked"
+        fi
+    fi
+
     set_default_shell
 }
 
