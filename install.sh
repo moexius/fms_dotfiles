@@ -257,6 +257,21 @@ install_configs() {
             mkdir -p "$HOME/.config/mcp"
             ln -sf "$DOTFILES_DIR/configs/mcp/ollama_server.py" "$HOME/.config/mcp/ollama_server.py"
             log_success "Ollama MCP server symlinked"
+            # Install pipx + mcp Python package if not present
+            if ! command -v pipx >/dev/null 2>&1; then
+                sudo pacman -S --noconfirm python-pipx
+            fi
+            if ! pipx list 2>/dev/null | grep -q "^   package mcp"; then
+                pipx install "mcp[cli]"
+                log_success "MCP Python package installed via pipx"
+            fi
+            # Register MCP server with Claude Code
+            if command -v claude >/dev/null 2>&1; then
+                MCP_PYTHON="$HOME/.local/share/pipx/venvs/mcp/bin/python3"
+                MCP_SCRIPT="$HOME/.config/mcp/ollama_server.py"
+                claude mcp add --scope user ollama "$MCP_PYTHON" "$MCP_SCRIPT" 2>/dev/null || true
+                log_success "Ollama MCP server registered with Claude Code"
+            fi
         fi
     fi
 
