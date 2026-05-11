@@ -1,15 +1,37 @@
 # ~/.config/atuin/config.toml
 
-# 1. Kill all cloud/sync functionality
+# Sync — fully disabled
 update_check = false
 sync_address = ""
+records_sync_enabled = false
+daemon_enabled = false
 
-# 2. Make the UI an inline menu instead of full-screen
+# UI
 style = "compact"
 inline_height = 15
+show_preview = true
+max_preview_height = 4
+show_help = false
 
-# 3. Use standard search UI on Up Arrow
+# Search
+search_mode = "fuzzy"
+filter_mode = "global"
+filter_mode_shell_up_key_binding = "directory"
+
+# Behaviour
 enter_accept = false
-
-# 4. Bind Up arrow to Atuin search
 keymap_mode = "auto"
+exit_mode = "return-original"
+
+# History filters — skip noisy commands
+history_filter = [
+    "^ls",
+    "^ll",
+    "^la",
+    "^cd",
+    "^pwd",
+    "^clear",
+    "^cls",
+    "^exit",
+    "^history",
+]
