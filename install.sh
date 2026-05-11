@@ -359,6 +359,31 @@ EOF
     echo ""
 }
 
+setup_atuin_sync() {
+    if [[ "$IS_CACHYOS" != "true" ]]; then return; fi
+    if ! command -v atuin >/dev/null 2>&1; then
+        log_warning "atuin not installed — skipping sync setup"
+        return
+    fi
+    log_info "Configuring atuin sync..."
+
+    # Import existing shell history
+    atuin import auto 2>/dev/null || true
+
+    echo ""
+    echo -e "${YELLOW}=== ATUIN SYNC MANUAL STEPS ===${NC}"
+    echo ""
+    echo "Login to self-hosted atuin server:"
+    echo "  atuin login -u moexius"
+    echo ""
+    echo "IMPORTANT: Use the same encryption key as other machines."
+    echo "  Get it from another machine: atuin key"
+    echo ""
+    echo "After login, sync:"
+    echo "  atuin sync"
+    echo ""
+}
+
 setup_ssh_keys() {
     if [[ "$IS_CACHYOS" != "true" ]]; then return; fi
     log_info "Setting up SSH keys..."
@@ -510,6 +535,7 @@ main() {
     install_fresh_editor
     install_atuin
     setup_backup
+    setup_atuin_sync
     setup_ssh_keys
     
     echo -e "${GREEN}🎉 ZSH and Starship have been installed successfully!${NC}"
