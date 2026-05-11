@@ -142,6 +142,21 @@ function docker_exec() {
 # CACHYOS SPECIFIC FUNCTIONS
 # ============================================================================
 if [[ "$IS_CACHYOS" == "true" ]]; then
+    function snap-create() {
+        local desc="${1:-manual snapshot}"
+        sudo snapper -c root create --description "$desc" --cleanup-algorithm number
+        sudo snapper -c home create --description "$desc" --cleanup-algorithm number
+        echo "Snapshots created: $desc"
+    }
+
+    function snap-undo() {
+        if [ $# -ne 1 ]; then echo "Usage: snap-undo <snapshot_number>"; return 1; fi
+        echo "Undoing root changes from snapshot $1 to current..."
+        sudo snapper -c root undochange "$1..0"
+        echo "Done. Home not touched — run 'sudo snapper -c home undochange $1..0' if needed."
+    }
+
+
     function set_performance() {
         if command -v cpupower >/dev/null 2>&1; then
             sudo cpupower frequency-set -g performance

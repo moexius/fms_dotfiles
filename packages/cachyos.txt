@@ -7,6 +7,12 @@ bat
 lsd
 atuin
 
+# Backup & Snapshots
+snapper
+snap-pac
+limine-snapper-sync
+btrbk
+
 # GUI / System Apps
 # firefox
 # visual-studio-code-bin

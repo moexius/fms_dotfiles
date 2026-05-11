@@ -430,6 +430,16 @@ if [[ "$DETECTED_OS" == "arch" ]]; then
         alias performance="sudo cpupower frequency-set -g performance && echo '🚀 Performance mode enabled'"
         alias powersave="sudo cpupower frequency-set -g powersave && echo '🔋 Powersave mode enabled'"
         alias balanced="sudo cpupower frequency-set -g schedutil && echo '⚖️  Balanced mode enabled'"
+
+        # Snapshot management (snapper + btrbk)
+        alias snaplist='sudo snapper -c root list && echo "---" && sudo snapper -c home list'
+        alias snap-before='sudo snapper -c root create --description "before claude session" --cleanup-algorithm number && sudo snapper -c home create --description "before claude session" --cleanup-algorithm number && echo "Snapshots created."'
+        alias snap-backup='sudo snapper -c root create --description "pre-backup" --cleanup-algorithm number && sudo snapper -c home create --description "pre-backup" --cleanup-algorithm number && sudo btrbk run'
+        alias snapdelete-root='sudo snapper -c root delete'
+        alias snapdelete-home='sudo snapper -c home delete'
+        alias btrbk-run='sudo btrbk run'
+        alias btrbk-list='sudo btrbk list'
+        alias btrbk-status='sudo systemctl status btrbk.timer'
     fi
 fi
 

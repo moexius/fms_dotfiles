@@ -49,3 +49,17 @@ if [[ -f "$PRIVATE_ALIASES_FILE" && -r "$PRIVATE_ALIASES_FILE" ]]; then
     source "$PRIVATE_ALIASES_FILE"
 fi
 
+
+# Keyboard navigation
+bindkey "^[[1;5C" end-of-line        # Ctrl+Right = end of line
+bindkey "^[[1;5D" beginning-of-line  # Ctrl+Left = beginning of line
+bindkey "^[[1;3C" forward-word       # Alt+Right = word forward
+bindkey "^[[1;3D" backward-word      # Alt+Left = word backward
+
+# Stop at / for path component navigation with Alt+arrows
+WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/moexius/.lmstudio/bin"
+# End of LM Studio CLI section
+
