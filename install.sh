@@ -273,6 +273,24 @@ install_configs() {
                 log_success "Ollama MCP server registered with Claude Code"
             fi
         fi
+        if [[ -f "$DOTFILES_DIR/configs/claude/hooks/ollama-preload.sh" ]]; then
+            mkdir -p "$HOME/.claude/hooks"
+            cp "$DOTFILES_DIR/configs/claude/hooks/ollama-preload.sh" "$HOME/.claude/hooks/ollama-preload.sh"
+            chmod +x "$HOME/.claude/hooks/ollama-preload.sh"
+            # Add SessionStart hook to Claude Code settings if not already present
+            CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+            if [[ -f "$CLAUDE_SETTINGS" ]] && ! grep -q "ollama-preload" "$CLAUDE_SETTINGS"; then
+                python3 -c "
+import json, sys
+with open('$CLAUDE_SETTINGS') as f: cfg = json.load(f)
+cfg.setdefault('hooks', {}).setdefault('SessionStart', [])
+if not any('ollama-preload' in str(h) for h in cfg['hooks']['SessionStart']):
+    cfg['hooks']['SessionStart'].append({'matcher': '', 'hooks': [{'type': 'command', 'command': 'bash $HOME/.claude/hooks/ollama-preload.sh', 'async': True}]})
+with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
+" 2>/dev/null || true
+            fi
+            log_success "Ollama preload hook installed"
+        fi
     fi
 
     set_default_shell
