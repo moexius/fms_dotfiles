@@ -130,10 +130,10 @@ alias ping="ping -c 5"
 alias myip="curl -s https://icanhazip.com && echo"
 
 if [[ "$ENVIRONMENT" == "macos" ]]; then
-    alias localip="ipconfig getifaddr en0"
+    alias localip="ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{print \$2}'"
     alias rwlan="networksetup -setairportpower en0 off && networksetup -setairportpower en0 on"
 else
-    alias localip="hostname -I | awk '{print \$1}'"
+    alias localip="hostname -I"
 fi
 
 alias listening='netstat -tlnp'
@@ -225,6 +225,14 @@ if [[ "$DETECTED_OS" == "macos" ]]; then
     alias sleepnow="pmset sleepnow"
     alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
     alias screensaver="open -a ScreenSaverEngine"
+
+    alias clamstatus="tail -10 /var/log/fm-clamshell-awake.log"
+    alias clamlog="tail -f /var/log/fm-clamshell-awake.log"
+    alias claminfo="sudo launchctl print system/com.fm.clamshell-awake"
+    alias clamrefresh="sudo launchctl kickstart -k system/com.fm.clamshell-awake"
+    alias clamon="rm -f ~/scripts/.clamshell-disable && touch ~/scripts/.clamshell-override && echo '🔌 Force AWAKE armed - daemon sets disablesleep=1 within 30s (no dongle needed)'"
+    alias clamoff="rm -f ~/scripts/.clamshell-override && touch ~/scripts/.clamshell-disable && echo '🛌 Force SLEEP armed - daemon sets disablesleep=0 within 30s (even while docked)'"
+    alias clamauto="rm -f ~/scripts/.clamshell-override ~/scripts/.clamshell-disable && echo '🔄 Overrides cleared - back to automatic dongle detection'"
 fi
 
 # ============================================================================

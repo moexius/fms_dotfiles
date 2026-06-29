@@ -63,3 +63,6 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 export PATH="$PATH:/home/moexius/.lmstudio/bin"
 # End of LM Studio CLI section
 
+
+# Tailscale/moexius login
+alias moexius='~/scripts/login_moexius.sh'
