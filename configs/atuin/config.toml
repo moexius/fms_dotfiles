@@ -6,7 +6,7 @@ sync_address = "https://atuin.moexius.lab"
 auto_sync = true
 sync_frequency = "5m"
 records_sync_enabled = true
-daemon_enabled = false
+daemon_enabled = true
 
 # UI
 style = "compact"

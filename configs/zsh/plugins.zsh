@@ -17,11 +17,9 @@ zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-history-substring-search
 zinit light zsh-users/zsh-completions
 
+# zsh-autocomplete disabled — caused terminal freezes via async PTY hangs
+# zsh-autosuggestions (above) provides suggestions without the PTY complexity
 ZSH_AUTOCOMPLETE_LOADED=false
-if ! grep -qa 'container=lxc' /proc/1/environ 2>/dev/null; then
-    zinit light marlonrichert/zsh-autocomplete
-    ZSH_AUTOCOMPLETE_LOADED=true
-fi
 
 zinit snippet OMZP::git
 zinit snippet OMZP::colored-man-pages
