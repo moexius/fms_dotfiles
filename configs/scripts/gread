@@ -1,0 +1,5 @@
+#!/bin/bash
+# Read/analyze large files via gemini-cli (plan-mode, read-only) — keeps Claude's context small.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OBSIDIAN_DIR="$("$SCRIPT_DIR/gemini-obsidian-dir.sh")"
+gemini -p "$*" --approval-mode plan --include-directories "$OBSIDIAN_DIR"

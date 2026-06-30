@@ -1,0 +1,5 @@
+#!/bin/bash
+# Large-context drafting via gemini-cli (plan-mode, read-only) — Gemini proposes, Claude reviews+applies.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OBSIDIAN_DIR="$("$SCRIPT_DIR/gemini-obsidian-dir.sh")"
+gemini -p "$*" --approval-mode plan --include-directories "$OBSIDIAN_DIR"
